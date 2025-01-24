@@ -1,5 +1,6 @@
 package com.krisped;
 
+import com.krisped.FightLogPanel.FightLog;
 import com.krisped.PlayerLookupPanel.PlayerLookup;
 import net.runelite.client.ui.PluginPanel;
 
@@ -11,7 +12,7 @@ public class PvPToolsPanel extends PluginPanel {
     private final CardLayout cardLayout;
     private final JPanel mainPanel;
 
-    public PvPToolsPanel(PlayerLookup playerLookup) {
+    public PvPToolsPanel(PlayerLookup playerLookup, FightLog fightLog) {
         setLayout(new BorderLayout());
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
@@ -20,6 +21,7 @@ public class PvPToolsPanel extends PluginPanel {
         mainPanel.add(homePanel, "home");
 
         mainPanel.add(playerLookup, "playerLookup");
+        mainPanel.add(fightLog, "fightLog");
 
         add(mainPanel, BorderLayout.CENTER);
 
@@ -36,6 +38,10 @@ public class PvPToolsPanel extends PluginPanel {
         JButton playerLookupButton = new JButton("Player Lookup");
         playerLookupButton.addActionListener(e -> cardLayout.show(mainPanel, "playerLookup"));
         homePanel.add(playerLookupButton, BorderLayout.CENTER);
+
+        JButton fightLogButton = new JButton("Fight Log");
+        fightLogButton.addActionListener(e -> cardLayout.show(mainPanel, "fightLog"));
+        homePanel.add(fightLogButton, BorderLayout.SOUTH);
 
         return homePanel;
     }

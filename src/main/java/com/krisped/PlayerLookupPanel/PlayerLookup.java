@@ -34,7 +34,7 @@ public class PlayerLookup extends JPanel {
     private final JPanel hiscorePanel;
     private final JPanel equipmentPanel;
 
-    private Runnable onBackButtonPressed;
+    private Runnable onBackButtonPressed;  // Store the action for the back button
     private String currentTargetName = null;
 
     public PlayerLookup(Client client, ClientThread clientThread, HiscoreClient hiscoreClient, ItemManager itemManager, SpriteManager spriteManager) {
@@ -47,44 +47,85 @@ public class PlayerLookup extends JPanel {
         setLayout(new BorderLayout());
         setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-        JLabel title = new JLabel("Player Lookup");
-        title.setHorizontalAlignment(SwingConstants.CENTER);
-        title.setFont(new Font("Arial", Font.BOLD, 16));
-        title.setForeground(Color.WHITE);
-        add(title, BorderLayout.NORTH);
+        // Title
+        JLabel titleLabel = new JLabel("Target Information");
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        titleLabel.setForeground(Color.WHITE);
 
+        JPanel titlePanel = new JPanel(new BorderLayout());
+        titlePanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        titlePanel.add(titleLabel, BorderLayout.NORTH);
+        titlePanel.add(Box.createVerticalStrut(30), BorderLayout.SOUTH); // Space between title and player name
+
+        add(titlePanel, BorderLayout.NORTH);
+
+        // Player Name Panel
         JPanel playerNamePanel = new JPanel(new BorderLayout());
+        playerNamePanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
         playerNamePanel.setBorder(BorderFactory.createTitledBorder("Player Name"));
-        playerNamePanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
         playerNameLabel = new JLabel("No target selected", SwingConstants.CENTER);
-        playerNameLabel.setFont(FontManager.getRunescapeFont());
-        playerNameLabel.setForeground(Color.WHITE);
+        playerNameLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        playerNameLabel.setForeground(Color.RED);
         playerNamePanel.add(playerNameLabel, BorderLayout.CENTER);
 
-        // Adjusting the layout of hiscorePanel to use FlowLayout for better control over spacing
-        hiscorePanel = new JPanel(new GridLayout(7, 1, 2, 2));  // Tighter grid with 2px gap
+        JButton clearTargetButton = new JButton("Clear Target");
+        clearTargetButton.setForeground(Color.WHITE);
+        clearTargetButton.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        clearTargetButton.addActionListener(e -> clearTarget());
+        playerNamePanel.add(clearTargetButton, BorderLayout.SOUTH);
+
+        // Hiscore Panel
+        hiscorePanel = new JPanel();
+        hiscorePanel.setLayout(new BoxLayout(hiscorePanel, BoxLayout.Y_AXIS));
         hiscorePanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
         hiscorePanel.setBorder(BorderFactory.createTitledBorder("Hiscores"));
 
+        JScrollPane hiscoreScrollPane = new JScrollPane(hiscorePanel);
+        hiscoreScrollPane.setPreferredSize(new Dimension(300, 180));
+        hiscoreScrollPane.setBorder(null);
+
+        // Equipment Panel
         equipmentPanel = new JPanel();
         equipmentPanel.setLayout(new BoxLayout(equipmentPanel, BoxLayout.Y_AXIS));
         equipmentPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
         equipmentPanel.setBorder(BorderFactory.createTitledBorder("Equipment"));
 
-        JPanel contentPanel = new JPanel(new GridLayout(2, 1, 10, 10));
-        contentPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
-        contentPanel.add(hiscorePanel);
-        contentPanel.add(equipmentPanel);
+        JScrollPane equipmentScrollPane = new JScrollPane(equipmentPanel);
+        equipmentScrollPane.setPreferredSize(new Dimension(300, 450));
+        equipmentScrollPane.setBorder(null);
 
-        add(playerNamePanel, BorderLayout.NORTH);
-        add(contentPanel, BorderLayout.CENTER);
+        // Back Button
+        JButton backButton = new JButton("Back to Main Menu");
+        backButton.setForeground(Color.WHITE);
+        backButton.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        backButton.setAlignmentX(CENTER_ALIGNMENT);
+        backButton.addActionListener(e -> {
+            if (onBackButtonPressed != null) {
+                onBackButtonPressed.run(); // Execute the back button action if set
+            }
+        });
+
+        // Content Panel
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
+        contentPanel.add(hiscoreScrollPane);
+        contentPanel.add(Box.createVerticalStrut(10));
+        contentPanel.add(equipmentScrollPane);
+        contentPanel.add(Box.createVerticalStrut(10));
+        contentPanel.add(backButton); // Adds back button
+
+        add(playerNamePanel, BorderLayout.CENTER);
+        add(contentPanel, BorderLayout.SOUTH);
 
         monitorInteraction();
     }
 
+    // Set action for the back button
     public void setOnBackButtonPressed(Runnable onBackButtonPressed) {
-        this.onBackButtonPressed = onBackButtonPressed;
+        this.onBackButtonPressed = onBackButtonPressed;  // Save the action for the back button
     }
 
     private void monitorInteraction() {
@@ -113,12 +154,25 @@ public class PlayerLookup extends JPanel {
                     currentTargetName = target.getName();
                     SwingUtilities.invokeLater(() -> {
                         playerNameLabel.setText(target.getName());
+                        playerNameLabel.setForeground(Color.GREEN);
                         fetchAndDisplayHiscores(target.getName());
                         fetchAndDisplayEquipment(target);
                     });
                 }
             }
         }
+    }
+
+    private void clearTarget() {
+        currentTargetName = null;
+        playerNameLabel.setText("No target selected");
+        playerNameLabel.setForeground(Color.RED);
+        hiscorePanel.removeAll();
+        equipmentPanel.removeAll();
+        hiscorePanel.revalidate();
+        hiscorePanel.repaint();
+        equipmentPanel.revalidate();
+        equipmentPanel.repaint();
     }
 
     private void fetchAndDisplayHiscores(String playerName) {
@@ -139,12 +193,13 @@ public class PlayerLookup extends JPanel {
             errorLabel.setForeground(Color.RED);
             hiscorePanel.add(errorLabel);
         }
+
         hiscorePanel.revalidate();
         hiscorePanel.repaint();
     }
 
     private void addStatToPanel(HiscoreSkill skill, int level) {
-        JPanel statPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        JPanel statPanel = new JPanel(new BorderLayout(2, 0));
         statPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
         JLabel iconLabel = new JLabel();
@@ -153,11 +208,12 @@ public class PlayerLookup extends JPanel {
                 iconLabel.setIcon(new ImageIcon(sprite));
             }
         });
-        statPanel.add(iconLabel);
+        statPanel.add(iconLabel, BorderLayout.WEST);
 
         JLabel textLabel = new JLabel(skill.getName() + ": " + level);
         textLabel.setForeground(Color.WHITE);
-        statPanel.add(textLabel);
+        textLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        statPanel.add(textLabel, BorderLayout.CENTER);
 
         hiscorePanel.add(statPanel);
     }
@@ -173,35 +229,19 @@ public class PlayerLookup extends JPanel {
                 equipmentPanel.add(noEquipmentLabel);
             } else {
                 AtomicLong totalValue = new AtomicLong(0);
-                AtomicLong maxItemValue = new AtomicLong(0);
-                AtomicLong secondMaxItemValue = new AtomicLong(0);
-                AtomicLong thirdMaxItemValue = new AtomicLong(0);
 
                 for (KitType kitType : KitType.values()) {
                     int itemId = composition.getEquipmentId(kitType);
                     if (itemId > 0) {
                         ItemComposition item = itemManager.getItemComposition(itemId);
                         int price = itemManager.getItemPrice(itemId);
-                        int highAlchValue = item.getHaPrice();
 
                         totalValue.addAndGet(price);
-
-                        if (highAlchValue > maxItemValue.get()) {
-                            thirdMaxItemValue.set(secondMaxItemValue.get());
-                            secondMaxItemValue.set(maxItemValue.get());
-                            maxItemValue.set(highAlchValue);
-                        } else if (highAlchValue > secondMaxItemValue.get()) {
-                            thirdMaxItemValue.set(secondMaxItemValue.get());
-                            secondMaxItemValue.set(highAlchValue);
-                        } else if (highAlchValue > thirdMaxItemValue.get()) {
-                            thirdMaxItemValue.set(highAlchValue);
-                        }
-
                         addEquipmentItem(item, kitType, price);
                     }
                 }
 
-                addTotalValues(totalValue.get(), maxItemValue.get(), secondMaxItemValue.get(), thirdMaxItemValue.get());
+                addTotalValues(totalValue.get());
             }
 
             equipmentPanel.revalidate();
@@ -240,13 +280,12 @@ public class PlayerLookup extends JPanel {
         equipmentPanel.add(itemPanel);
     }
 
-    private void addTotalValues(long totalValue, long maxItemValue, long secondMaxItemValue, long thirdMaxItemValue) {
+    private void addTotalValues(long totalValue) {
         JPanel totalPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         totalPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-        // First total: Coin Stack
         JLabel coinIcon = new JLabel();
-        spriteManager.getSpriteAsync(1046, 0, sprite -> { // Coin stack sprite ID
+        spriteManager.getSpriteAsync(1046, 0, sprite -> {
             if (sprite != null) {
                 coinIcon.setIcon(new ImageIcon(sprite));
             }
@@ -256,44 +295,8 @@ public class PlayerLookup extends JPanel {
         totalLabel.setForeground(Color.GREEN);
         totalLabel.setFont(FontManager.getRunescapeFont());
 
-        // Second total: Protect Item
-        JLabel protectIcon = new JLabel();
-        spriteManager.getSpriteAsync(123, 0, sprite -> { // Protect Item sprite ID
-            if (sprite != null) {
-                protectIcon.setIcon(new ImageIcon(sprite));
-            }
-        });
-
-        JLabel protectLabel = new JLabel("Protect Item Total: " + QuantityFormatter.quantityToStackSize(totalValue - maxItemValue));
-        protectLabel.setForeground(Color.CYAN);
-        protectLabel.setFont(FontManager.getRunescapeFont());
-
-        // Third total: 4x Protect Item
-        JLabel protectFourIcon = new JLabel();
-        spriteManager.getSpriteAsync(912, 0, sprite -> { // Custom Protect Item 4x Sprite ID
-            if (sprite != null) {
-                protectFourIcon.setIcon(new ImageIcon(sprite));
-            }
-        });
-
-        JLabel protectFourLabel = new JLabel("With Protect (4x): " + QuantityFormatter.quantityToStackSize(totalValue - maxItemValue - secondMaxItemValue - thirdMaxItemValue));
-        protectFourLabel.setForeground(Color.MAGENTA);
-        protectFourLabel.setFont(FontManager.getRunescapeFont());
-
         totalPanel.add(coinIcon);
         totalPanel.add(totalLabel);
-        equipmentPanel.add(totalPanel);
-
-        totalPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        totalPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
-        totalPanel.add(protectIcon);
-        totalPanel.add(protectLabel);
-        equipmentPanel.add(totalPanel);
-
-        totalPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        totalPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
-        totalPanel.add(protectFourIcon);
-        totalPanel.add(protectFourLabel);
         equipmentPanel.add(totalPanel);
     }
 
