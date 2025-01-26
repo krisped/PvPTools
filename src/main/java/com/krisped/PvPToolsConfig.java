@@ -10,6 +10,7 @@ import java.awt.*;
 @ConfigGroup("pvptools")
 public interface PvPToolsConfig extends Config {
 
+    // Section for Attackable Players
     @ConfigSection(
             name = "Highlight Attackable Players",
             description = "Settings related to highlighting attackable players.",
@@ -21,13 +22,84 @@ public interface PvPToolsConfig extends Config {
     @ConfigItem(
             keyName = "enableAttackablePlayers",
             name = "Enable Attackable Players",
-            description = "Enable highlighting of attackable players.",
+            description = "Enable or disable all highlighting for attackable players.",
             section = highlightAttackablePlayersSection
     )
     default boolean enableAttackablePlayers() {
-        return false; // Default: Off
+        return false;
     }
 
+    @ConfigItem(
+            keyName = "playerNameLocationAttackable",
+            name = "Name and Level",
+            description = "Display name and combat level of attackable players.",
+            section = highlightAttackablePlayersSection
+    )
+    default PlayerNameLocation playerNameLocationAttackable() {
+        return PlayerNameLocation.DISABLED;
+    }
+
+    @ConfigItem(
+            keyName = "highlightTileAttackable",
+            name = "Highlight Tile",
+            description = "Highlight the tile of attackable players.",
+            section = highlightAttackablePlayersSection
+    )
+    default boolean highlightTileAttackable() {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "highlightOutlineAttackable",
+            name = "Highlight Outline",
+            description = "Highlight the outline of attackable players.",
+            section = highlightAttackablePlayersSection
+    )
+    default boolean highlightOutlineAttackable() {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "highlightHullAttackable",
+            name = "Highlight Hull",
+            description = "Highlight the hull (convex hull) of attackable players.",
+            section = highlightAttackablePlayersSection
+    )
+    default boolean highlightHullAttackable() {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "highlightMinimapAttackable",
+            name = "Highlight Minimap",
+            description = "Highlight the minimap dot of attackable players.",
+            section = highlightAttackablePlayersSection
+    )
+    default boolean highlightMinimapAttackable() {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "minimapAnimationAttackable",
+            name = "Minimap Animation",
+            description = "Select the animation type for attackable players' minimap highlights.",
+            section = highlightAttackablePlayersSection
+    )
+    default MinimapAnimation minimapAnimationAttackable() {
+        return MinimapAnimation.Static;
+    }
+
+    @ConfigItem(
+            keyName = "highlightColorAttackable",
+            name = "Attackable Players Color",
+            description = "Select the highlight color for attackable players.",
+            section = highlightAttackablePlayersSection
+    )
+    default Color highlightColorAttackable() {
+        return Color.RED;
+    }
+
+    // Section for Local Player
     @ConfigSection(
             name = "Highlight Local Player",
             description = "Settings related to highlighting the local player.",
@@ -43,7 +115,17 @@ public interface PvPToolsConfig extends Config {
             section = highlightLocalPlayerSection
     )
     default boolean enableLocalPlayer() {
-        return false; // Default: Off
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "playerNameLocationLocal",
+            name = "Name and Level",
+            description = "Display name and combat level of the local player.",
+            section = highlightLocalPlayerSection
+    )
+    default PlayerNameLocation playerNameLocationLocal() {
+        return PlayerNameLocation.DISABLED;
     }
 
     @ConfigItem(
@@ -53,7 +135,7 @@ public interface PvPToolsConfig extends Config {
             section = highlightLocalPlayerSection
     )
     default boolean highlightTile() {
-        return false; // Default: Off
+        return false;
     }
 
     @ConfigItem(
@@ -63,7 +145,7 @@ public interface PvPToolsConfig extends Config {
             section = highlightLocalPlayerSection
     )
     default boolean highlightOutline() {
-        return false; // Default: Off
+        return false;
     }
 
     @ConfigItem(
@@ -73,7 +155,7 @@ public interface PvPToolsConfig extends Config {
             section = highlightLocalPlayerSection
     )
     default boolean highlightHull() {
-        return false; // Default: Off
+        return false;
     }
 
     @ConfigItem(
@@ -83,7 +165,7 @@ public interface PvPToolsConfig extends Config {
             section = highlightLocalPlayerSection
     )
     default boolean highlightMinimap() {
-        return false; // Default: Off
+        return false;
     }
 
     @ConfigItem(
@@ -93,7 +175,7 @@ public interface PvPToolsConfig extends Config {
             section = highlightLocalPlayerSection
     )
     default MinimapAnimation minimapAnimation() {
-        return MinimapAnimation.Static; // Default: Static
+        return MinimapAnimation.Static;
     }
 
     @ConfigItem(
@@ -103,23 +185,22 @@ public interface PvPToolsConfig extends Config {
             section = highlightLocalPlayerSection
     )
     default Color localPlayerColor() {
-        return Color.GREEN; // Default color
+        return Color.GREEN;
     }
 
-    /**
-     * Enum for minimap animation types.
-     */
+    // Enum for minimap animation types
     enum MinimapAnimation {
         Static,
         Pulse,
         Blink,
-        Sonar,
-        Spin,
-        Heartbeat,
-        ExpandingWaves,
-        PulsatingGlow,
-        DirectionalIndicator,
-        PulsingHexagon,
-        DepthSpin
+        Sonar
+    }
+
+    // Enum for player name and level location
+    enum PlayerNameLocation {
+        DISABLED,
+        ABOVE_HEAD,
+        CENTER_OF_MODEL,
+        RIGHT_OF_MODEL
     }
 }

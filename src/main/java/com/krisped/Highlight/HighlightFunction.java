@@ -25,18 +25,27 @@ public class HighlightFunction {
 
     private boolean isOverlayActive = false;
 
+    /**
+     * Starter overlay-funksjonaliteten.
+     */
     public void start() {
         log.info("HighlightFunction started.");
         updateHighlights();
     }
 
+    /**
+     * Stopper overlay-funksjonaliteten.
+     */
     public void stop() {
         log.info("HighlightFunction stopped.");
         disableHighlight();
     }
 
+    /**
+     * Oppdaterer highlights basert på konfigurasjonen.
+     */
     public void updateHighlights() {
-        if (highlightConfig.isHighlightLocalPlayerEnabled()) {
+        if (highlightConfig.isHighlightLocalPlayerEnabled() || highlightConfig.isHighlightAttackableEnabled()) {
             enableHighlight();
         } else {
             disableHighlight();
@@ -50,7 +59,7 @@ public class HighlightFunction {
             isOverlayActive = true;
             log.info("Overlay enabled.");
         } else {
-            configureOverlay(); // Update configuration even if overlay is active
+            configureOverlay(); // Oppdaterer selv om overlay allerede er aktivt
         }
     }
 
@@ -63,6 +72,7 @@ public class HighlightFunction {
     }
 
     private void configureOverlay() {
+        // Konfigurerer overlay for Local Player
         highlightOverlay.configureOverlay(
                 highlightConfig.shouldHighlightTile(),
                 highlightConfig.shouldHighlightOutline(),
@@ -70,6 +80,16 @@ public class HighlightFunction {
                 highlightConfig.shouldHighlightMinimap(),
                 highlightConfig.getLocalPlayerColor(),
                 highlightConfig.getMinimapAnimation()
+        );
+
+        // Konfigurerer overlay for Attackable Players
+        highlightOverlay.configureAttackableOverlay(
+                highlightConfig.shouldHighlightAttackableTile(),
+                highlightConfig.shouldHighlightAttackableOutline(),
+                highlightConfig.shouldHighlightAttackableHull(),
+                highlightConfig.shouldHighlightAttackableMinimap(),
+                highlightConfig.getAttackablePlayerColor(),
+                highlightConfig.getAttackableMinimapAnimation()
         );
 
         log.info("Overlay configured: {}", highlightConfig.debugConfig());
