@@ -8,8 +8,8 @@ import net.runelite.client.config.ConfigSection;
 import java.awt.*;
 
 @ConfigGroup("pvptools")
-public interface PvPToolsConfig extends Config {
-
+public interface PvPToolsConfig extends Config
+{
     // Section for Attackable Players
     @ConfigSection(
             name = "Highlight Attackable Players",
@@ -25,7 +25,8 @@ public interface PvPToolsConfig extends Config {
             description = "Enable or disable all highlighting for attackable players.",
             section = highlightAttackablePlayersSection
     )
-    default boolean enableAttackablePlayers() {
+    default boolean enableAttackablePlayers()
+    {
         return false;
     }
 
@@ -35,7 +36,8 @@ public interface PvPToolsConfig extends Config {
             description = "Display name and combat level of attackable players.",
             section = highlightAttackablePlayersSection
     )
-    default PlayerNameLocation playerNameLocationAttackable() {
+    default PlayerNameLocation playerNameLocationAttackable()
+    {
         return PlayerNameLocation.DISABLED;
     }
 
@@ -45,7 +47,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the tile of attackable players.",
             section = highlightAttackablePlayersSection
     )
-    default boolean highlightTileAttackable() {
+    default boolean highlightTileAttackable()
+    {
         return false;
     }
 
@@ -55,7 +58,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the outline of attackable players.",
             section = highlightAttackablePlayersSection
     )
-    default boolean highlightOutlineAttackable() {
+    default boolean highlightOutlineAttackable()
+    {
         return false;
     }
 
@@ -65,7 +69,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the hull (convex hull) of attackable players.",
             section = highlightAttackablePlayersSection
     )
-    default boolean highlightHullAttackable() {
+    default boolean highlightHullAttackable()
+    {
         return false;
     }
 
@@ -75,7 +80,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the minimap dot of attackable players.",
             section = highlightAttackablePlayersSection
     )
-    default boolean highlightMinimapAttackable() {
+    default boolean highlightMinimapAttackable()
+    {
         return false;
     }
 
@@ -85,7 +91,8 @@ public interface PvPToolsConfig extends Config {
             description = "Select the animation type for attackable players' minimap highlights.",
             section = highlightAttackablePlayersSection
     )
-    default MinimapAnimation minimapAnimationAttackable() {
+    default MinimapAnimation minimapAnimationAttackable()
+    {
         return MinimapAnimation.Static;
     }
 
@@ -95,7 +102,8 @@ public interface PvPToolsConfig extends Config {
             description = "Select the highlight color for attackable players.",
             section = highlightAttackablePlayersSection
     )
-    default Color highlightColorAttackable() {
+    default Color highlightColorAttackable()
+    {
         return Color.RED;
     }
 
@@ -114,7 +122,8 @@ public interface PvPToolsConfig extends Config {
             description = "Enable highlighting of the local player.",
             section = highlightLocalPlayerSection
     )
-    default boolean enableLocalPlayer() {
+    default boolean enableLocalPlayer()
+    {
         return false;
     }
 
@@ -124,7 +133,8 @@ public interface PvPToolsConfig extends Config {
             description = "Display name and combat level of the local player.",
             section = highlightLocalPlayerSection
     )
-    default PlayerNameLocation playerNameLocationLocal() {
+    default PlayerNameLocation playerNameLocationLocal()
+    {
         return PlayerNameLocation.DISABLED;
     }
 
@@ -134,7 +144,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the tile the local player is standing on.",
             section = highlightLocalPlayerSection
     )
-    default boolean highlightTile() {
+    default boolean highlightTile()
+    {
         return false;
     }
 
@@ -144,7 +155,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the outline of the local player.",
             section = highlightLocalPlayerSection
     )
-    default boolean highlightOutline() {
+    default boolean highlightOutline()
+    {
         return false;
     }
 
@@ -154,7 +166,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the hull (convex hull) of the local player.",
             section = highlightLocalPlayerSection
     )
-    default boolean highlightHull() {
+    default boolean highlightHull()
+    {
         return false;
     }
 
@@ -164,7 +177,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the local player's dot on the minimap.",
             section = highlightLocalPlayerSection
     )
-    default boolean highlightMinimap() {
+    default boolean highlightMinimap()
+    {
         return false;
     }
 
@@ -174,7 +188,8 @@ public interface PvPToolsConfig extends Config {
             description = "Select the animation type for the minimap highlight.",
             section = highlightLocalPlayerSection
     )
-    default MinimapAnimation minimapAnimation() {
+    default MinimapAnimation minimapAnimation()
+    {
         return MinimapAnimation.Static;
     }
 
@@ -184,7 +199,8 @@ public interface PvPToolsConfig extends Config {
             description = "Select the color for all local player highlights.",
             section = highlightLocalPlayerSection
     )
-    default Color localPlayerColor() {
+    default Color localPlayerColor()
+    {
         return Color.GREEN;
     }
 
@@ -203,7 +219,8 @@ public interface PvPToolsConfig extends Config {
             description = "Enable or disable all highlighting for friends.",
             section = highlightFriendsSection
     )
-    default boolean enableFriendsHighlight() {
+    default boolean enableFriendsHighlight()
+    {
         return false;
     }
 
@@ -213,7 +230,8 @@ public interface PvPToolsConfig extends Config {
             description = "Select the highlight color for friends.",
             section = highlightFriendsSection
     )
-    default Color friendsHighlightColor() {
+    default Color friendsHighlightColor()
+    {
         return Color.GREEN;
     }
 
@@ -223,7 +241,8 @@ public interface PvPToolsConfig extends Config {
             description = "Display name and combat level of friends.",
             section = highlightFriendsSection
     )
-    default PlayerNameLocation friendsNameLocation() {
+    default PlayerNameLocation friendsNameLocation()
+    {
         return PlayerNameLocation.ABOVE_HEAD;
     }
 
@@ -233,7 +252,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the tile of friends.",
             section = highlightFriendsSection
     )
-    default boolean highlightFriendsTile() {
+    default boolean highlightFriendsTile()
+    {
         return true;
     }
 
@@ -243,7 +263,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the outline of friends.",
             section = highlightFriendsSection
     )
-    default boolean highlightFriendsOutline() {
+    default boolean highlightFriendsOutline()
+    {
         return true;
     }
 
@@ -253,7 +274,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the hull (convex hull) of friends.",
             section = highlightFriendsSection
     )
-    default boolean highlightFriendsHull() {
+    default boolean highlightFriendsHull()
+    {
         return false;
     }
 
@@ -263,7 +285,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the minimap dot of friends.",
             section = highlightFriendsSection
     )
-    default boolean highlightFriendsMinimap() {
+    default boolean highlightFriendsMinimap()
+    {
         return true;
     }
 
@@ -273,7 +296,8 @@ public interface PvPToolsConfig extends Config {
             description = "Select the animation type for friends' minimap highlights.",
             section = highlightFriendsSection
     )
-    default MinimapAnimation friendsMinimapAnimation() {
+    default MinimapAnimation friendsMinimapAnimation()
+    {
         return MinimapAnimation.Pulse;
     }
 
@@ -292,7 +316,8 @@ public interface PvPToolsConfig extends Config {
             description = "Enable or disable all highlighting for players on the Ignore list.",
             section = highlightIgnoreSection
     )
-    default boolean enableIgnoreHighlight() {
+    default boolean enableIgnoreHighlight()
+    {
         return false;
     }
 
@@ -302,7 +327,8 @@ public interface PvPToolsConfig extends Config {
             description = "Select the highlight color for players on the Ignore list.",
             section = highlightIgnoreSection
     )
-    default Color ignoreHighlightColor() {
+    default Color ignoreHighlightColor()
+    {
         return Color.MAGENTA;
     }
 
@@ -312,7 +338,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the tile of players on the Ignore list.",
             section = highlightIgnoreSection
     )
-    default boolean highlightIgnoreTile() {
+    default boolean highlightIgnoreTile()
+    {
         return true;
     }
 
@@ -322,7 +349,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the outline of players on the Ignore list.",
             section = highlightIgnoreSection
     )
-    default boolean highlightIgnoreOutline() {
+    default boolean highlightIgnoreOutline()
+    {
         return true;
     }
 
@@ -332,7 +360,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the hull (convex hull) of players on the Ignore list.",
             section = highlightIgnoreSection
     )
-    default boolean highlightIgnoreHull() {
+    default boolean highlightIgnoreHull()
+    {
         return false;
     }
 
@@ -342,7 +371,8 @@ public interface PvPToolsConfig extends Config {
             description = "Highlight the minimap dot of players on the Ignore list.",
             section = highlightIgnoreSection
     )
-    default boolean highlightIgnoreMinimap() {
+    default boolean highlightIgnoreMinimap()
+    {
         return true;
     }
 
@@ -352,12 +382,14 @@ public interface PvPToolsConfig extends Config {
             description = "Select the animation type for Ignore list players' minimap highlights.",
             section = highlightIgnoreSection
     )
-    default MinimapAnimation ignoreMinimapAnimation() {
+    default MinimapAnimation ignoreMinimapAnimation()
+    {
         return MinimapAnimation.Blink;
     }
 
     // Enum for minimap animation types
-    enum MinimapAnimation {
+    enum MinimapAnimation
+    {
         Static,
         Pulse,
         Blink,
@@ -365,7 +397,8 @@ public interface PvPToolsConfig extends Config {
     }
 
     // Enum for player name and level location
-    enum PlayerNameLocation {
+    enum PlayerNameLocation
+    {
         DISABLED,
         ABOVE_HEAD,
         CENTER_OF_MODEL,

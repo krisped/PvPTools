@@ -4,13 +4,12 @@ import net.runelite.api.Client;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.ui.overlay.OverlayManager;
-
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class HighlightFunction {
-
+public class HighlightFunction
+{
     @Inject
     private Client client;
 
@@ -28,7 +27,8 @@ public class HighlightFunction {
     /**
      * Starter overlay-funksjonaliteten.
      */
-    public void start() {
+    public void start()
+    {
         log.info("HighlightFunction started.");
         updateHighlights();
     }
@@ -36,7 +36,8 @@ public class HighlightFunction {
     /**
      * Stopper overlay-funksjonaliteten.
      */
-    public void stop() {
+    public void stop()
+    {
         log.info("HighlightFunction stopped.");
         disableHighlight();
     }
@@ -44,41 +45,53 @@ public class HighlightFunction {
     /**
      * Oppdaterer highlights basert på konfigurasjonen.
      */
-    public void updateHighlights() {
-        if (highlightConfig.isHighlightLocalPlayerEnabled() ||
-                highlightConfig.isHighlightAttackableEnabled() ||
-                highlightConfig.isHighlightFriendsEnabled() ||
-                highlightConfig.isHighlightIgnoreEnabled()) { // Legg til sjekk for Ignore
+    public void updateHighlights()
+    {
+        if (highlightConfig.isAnyHighlightEnabled())
+        {
             enableHighlight();
-        } else {
+        }
+        else
+        {
             disableHighlight();
         }
     }
 
-    private void enableHighlight() {
-        if (!isOverlayActive) {
+    private void enableHighlight()
+    {
+        if (!isOverlayActive)
+        {
             configureOverlay();
             overlayManager.add(highlightOverlay);
             isOverlayActive = true;
             log.info("Overlay enabled.");
-        } else {
-            configureOverlay(); // Oppdaterer selv om overlay allerede er aktivt
+        }
+        else
+        {
+            // Hvis overlay allerede er aktivt, bare oppdater konfigurasjonene
+            configureOverlay();
         }
     }
 
-    private void disableHighlight() {
-        if (isOverlayActive) {
+    private void disableHighlight()
+    {
+        if (isOverlayActive)
+        {
             overlayManager.remove(highlightOverlay);
             isOverlayActive = false;
             log.info("Overlay disabled.");
         }
     }
 
-    private void configureOverlay() {
+    /**
+     * Les konfigurasjonen fra highlightConfig, og sett de ulike overlay-boolene.
+     */
+    private void configureOverlay()
+    {
         log.info("Configuring overlays...");
 
-        // Konfigurerer overlay for Local Player
-        highlightOverlay.configureOverlay(
+        // 1) Local
+        highlightOverlay.configureLocalOverlay(
                 highlightConfig.shouldHighlightTile(),
                 highlightConfig.shouldHighlightOutline(),
                 highlightConfig.shouldHighlightHull(),
@@ -87,7 +100,7 @@ public class HighlightFunction {
                 highlightConfig.getMinimapAnimation()
         );
 
-        // Konfigurerer overlay for Attackable Players
+        // 2) Attackable
         highlightOverlay.configureAttackableOverlay(
                 highlightConfig.shouldHighlightAttackableTile(),
                 highlightConfig.shouldHighlightAttackableOutline(),
@@ -97,35 +110,37 @@ public class HighlightFunction {
                 highlightConfig.getAttackableMinimapAnimation()
         );
 
-        // Konfigurerer overlay for Friends
+        // 3) Friends
         highlightOverlay.configureFriendsOverlay(
                 highlightConfig.shouldHighlightFriendsTile(),
                 highlightConfig.shouldHighlightFriendsOutline(),
                 highlightConfig.shouldHighlightFriendsHull(),
                 highlightConfig.shouldHighlightFriendsMinimap(),
                 highlightConfig.getFriendsHighlightColor(),
-                highlightConfig.getFriendsMinimapAnimation() // Bruker riktig animasjon for venner
+                highlightConfig.getFriendsMinimapAnimation()
         );
 
-        // Konfigurerer overlay for Ignore List
+        // 4) Ignore
         highlightOverlay.configureIgnoreOverlay(
                 highlightConfig.shouldHighlightIgnoreTile(),
                 highlightConfig.shouldHighlightIgnoreOutline(),
                 highlightConfig.shouldHighlightIgnoreHull(),
                 highlightConfig.shouldHighlightIgnoreMinimap(),
                 highlightConfig.getIgnoreHighlightColor(),
-                highlightConfig.getIgnoreMinimapAnimation() // Bruker riktig animasjon for Ignore
+                highlightConfig.getIgnoreMinimapAnimation()
         );
 
         log.info("Overlay configured: {}", highlightConfig.debugConfig());
     }
 
     @Subscribe
-    public void onConfigChanged(ConfigChanged event) {
-        if (!"pvptools".equals(event.getGroup())) {
+    public void onConfigChanged(ConfigChanged event)
+    {
+        if (!"pvptools".equals(event.getGroup()))
+        {
             return;
         }
-        log.info("Configuration changed: {}", event.getKey());
+        log.info("Configuration changed in HighlightFunction: {}", event.getKey());
         updateHighlights();
     }
 }

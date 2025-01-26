@@ -32,8 +32,8 @@ import java.awt.image.BufferedImage;
         tags = {"pvp", "tools", "combat", "runelite"},
         enabledByDefault = false
 )
-public class PvPToolsPlugin extends Plugin {
-
+public class PvPToolsPlugin extends Plugin
+{
     @Inject
     private ClientToolbar clientToolbar;
 
@@ -60,11 +60,11 @@ public class PvPToolsPlugin extends Plugin {
 
     private NavigationButton navButton;
     private PvPToolsPanel panel;
-
     private FightLog fightLog;
 
     @Override
-    protected void startUp() throws Exception {
+    protected void startUp() throws Exception
+    {
         log.info("[KP] PvP Tools started!");
 
         // Initialize FightLog and PlayerLookup
@@ -72,7 +72,7 @@ public class PvPToolsPlugin extends Plugin {
         PlayerLookup playerLookup = new PlayerLookup(client, clientThread, hiscoreClient, itemManager, spriteManager);
 
         // Set the action for the back button
-        playerLookup.setOnBackButtonPressed(() -> panel.switchToHome()); // Ensures the back button works properly
+        playerLookup.setOnBackButtonPressed(() -> panel.switchToHome());
 
         // Setup main panel
         panel = new PvPToolsPanel(playerLookup, fightLog);
@@ -91,7 +91,8 @@ public class PvPToolsPlugin extends Plugin {
     }
 
     @Override
-    protected void shutDown() throws Exception {
+    protected void shutDown() throws Exception
+    {
         log.info("[KP] PvP Tools stopped!");
         clientToolbar.removeNavigation(navButton);
 
@@ -100,53 +101,60 @@ public class PvPToolsPlugin extends Plugin {
     }
 
     @Provides
-    PvPToolsConfig provideConfig(ConfigManager configManager) {
+    PvPToolsConfig provideConfig(ConfigManager configManager)
+    {
         return configManager.getConfig(PvPToolsConfig.class);
     }
 
     // Handle chat messages and detect kills and deaths
     @Subscribe
-    public void onChatMessage(ChatMessage event) {
+    public void onChatMessage(ChatMessage event)
+    {
         String message = event.getMessage();
 
         // Detect kill event (e.g., "You have defeated")
-        if (message.contains("You have defeated")) {
+        if (message.contains("You have defeated"))
+        {
             String enemyName = message.replace("You have defeated ", "").trim();
             handleKillEvent(enemyName);
         }
         // Detect death event (e.g., "You were defeated by")
-        else if (message.contains("You were defeated by")) {
+        else if (message.contains("You were defeated by"))
+        {
             String enemyName = message.replace("You were defeated by ", "").trim();
             handleDeathEvent(enemyName);
         }
     }
 
-    // Handle kill event
-    private void handleKillEvent(String enemyName) {
+    private void handleKillEvent(String enemyName)
+    {
         log.info("Logging kill against: " + enemyName);
         fightLog.logFight(enemyName, true);
         sendChatMessage("Kill logged to Fight Log");
     }
 
-    // Handle death event
-    private void handleDeathEvent(String enemyName) {
+    private void handleDeathEvent(String enemyName)
+    {
         log.info("Logging death against: " + enemyName);
         fightLog.logFight(enemyName, false);
         sendChatMessage("Death logged to Fight Log");
     }
 
-    // Send a message to the chat
-    private void sendChatMessage(String message) {
-        if (client != null) {
+    private void sendChatMessage(String message)
+    {
+        if (client != null)
+        {
             client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[KP] PvP Tools: " + message, null);
         }
     }
 
-    private void startHighlighting() {
+    private void startHighlighting()
+    {
         clientThread.invoke(() -> highlightFunction.start());
     }
 
-    private void stopHighlighting() {
+    private void stopHighlighting()
+    {
         clientThread.invoke(() -> highlightFunction.stop());
     }
 
@@ -154,30 +162,16 @@ public class PvPToolsPlugin extends Plugin {
      * Dynamisk oppdatering når konfigurasjonen endres.
      */
     @Subscribe
-    public void onConfigChanged(ConfigChanged event) {
-        if (!"pvptools".equals(event.getGroup())) {
+    public void onConfigChanged(ConfigChanged event)
+    {
+        if (!"pvptools".equals(event.getGroup()))
+        {
             return;
         }
 
         log.info("Configuration changed: {}", event.getKey());
 
         // Dynamisk oppdatering av highlight-logikk
-        clientThread.invoke(() -> {
-            if ("highlightTile".equals(event.getKey())) {
-                log.info("Highlight Tile setting changed, updating overlay...");
-            } else if ("enableLocalPlayer".equals(event.getKey())) {
-                log.info("Enable Local Player setting changed, updating overlay...");
-            }
-            highlightFunction.updateHighlights();
-        });
-    }
-
-    /**
-     * Logger plugin status for debugging.
-     */
-    private void logPluginStatus() {
-        log.info("[KP] PvP Tools Plugin is running.");
-        log.info("Highlight Tile: {}", highlightConfig.shouldHighlightTile());
-        log.info("Enable Local Player: {}", highlightConfig.shouldHighlightLocalPlayer());
+        clientThread.invoke(() -> highlightFunction.updateHighlights());
     }
 }
