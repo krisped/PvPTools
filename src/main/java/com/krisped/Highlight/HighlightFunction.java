@@ -45,7 +45,10 @@ public class HighlightFunction {
      * Oppdaterer highlights basert på konfigurasjonen.
      */
     public void updateHighlights() {
-        if (highlightConfig.isHighlightLocalPlayerEnabled() || highlightConfig.isHighlightAttackableEnabled()) {
+        if (highlightConfig.isHighlightLocalPlayerEnabled() ||
+                highlightConfig.isHighlightAttackableEnabled() ||
+                highlightConfig.isHighlightFriendsEnabled() ||
+                highlightConfig.isHighlightIgnoreEnabled()) { // Legg til sjekk for Ignore
             enableHighlight();
         } else {
             disableHighlight();
@@ -72,6 +75,8 @@ public class HighlightFunction {
     }
 
     private void configureOverlay() {
+        log.info("Configuring overlays...");
+
         // Konfigurerer overlay for Local Player
         highlightOverlay.configureOverlay(
                 highlightConfig.shouldHighlightTile(),
@@ -90,6 +95,26 @@ public class HighlightFunction {
                 highlightConfig.shouldHighlightAttackableMinimap(),
                 highlightConfig.getAttackablePlayerColor(),
                 highlightConfig.getAttackableMinimapAnimation()
+        );
+
+        // Konfigurerer overlay for Friends
+        highlightOverlay.configureFriendsOverlay(
+                highlightConfig.shouldHighlightFriendsTile(),
+                highlightConfig.shouldHighlightFriendsOutline(),
+                highlightConfig.shouldHighlightFriendsHull(),
+                highlightConfig.shouldHighlightFriendsMinimap(),
+                highlightConfig.getFriendsHighlightColor(),
+                highlightConfig.getFriendsMinimapAnimation() // Bruker riktig animasjon for venner
+        );
+
+        // Konfigurerer overlay for Ignore List
+        highlightOverlay.configureIgnoreOverlay(
+                highlightConfig.shouldHighlightIgnoreTile(),
+                highlightConfig.shouldHighlightIgnoreOutline(),
+                highlightConfig.shouldHighlightIgnoreHull(),
+                highlightConfig.shouldHighlightIgnoreMinimap(),
+                highlightConfig.getIgnoreHighlightColor(),
+                highlightConfig.getIgnoreMinimapAnimation() // Bruker riktig animasjon for Ignore
         );
 
         log.info("Overlay configured: {}", highlightConfig.debugConfig());

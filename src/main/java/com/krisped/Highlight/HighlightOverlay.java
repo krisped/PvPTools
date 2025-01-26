@@ -43,6 +43,22 @@ public class HighlightOverlay extends Overlay {
     private Color attackablePlayerColor;
     private PvPToolsConfig.MinimapAnimation attackableMinimapAnimation;
 
+    // Friends configurations
+    private boolean highlightFriendsTile;
+    private boolean highlightFriendsOutline;
+    private boolean highlightFriendsHull;
+    private boolean highlightFriendsMinimap;
+    private Color friendsHighlightColor;
+    private PvPToolsConfig.MinimapAnimation friendsMinimapAnimation;
+
+    // Ignore List configurations
+    private boolean highlightIgnoreTile;
+    private boolean highlightIgnoreOutline;
+    private boolean highlightIgnoreHull;
+    private boolean highlightIgnoreMinimap;
+    private Color ignoreHighlightColor;
+    private PvPToolsConfig.MinimapAnimation ignoreMinimapAnimation;
+
     @Inject
     public HighlightOverlay(Client client, ModelOutlineRenderer modelOutlineRenderer, HighlightConfig highlightConfig) {
         this.client = client;
@@ -53,9 +69,6 @@ public class HighlightOverlay extends Overlay {
         setPriority(OverlayPriority.HIGH);
     }
 
-    /**
-     * Konfigurerer overlay for Local Player.
-     */
     public void configureOverlay(
             boolean highlightTile,
             boolean highlightOutline,
@@ -72,9 +85,6 @@ public class HighlightOverlay extends Overlay {
         this.minimapAnimation = minimapAnimation;
     }
 
-    /**
-     * Konfigurerer overlay for Attackable Players.
-     */
     public void configureAttackableOverlay(
             boolean highlightAttackableTile,
             boolean highlightAttackableOutline,
@@ -91,6 +101,38 @@ public class HighlightOverlay extends Overlay {
         this.attackableMinimapAnimation = attackableMinimapAnimation;
     }
 
+    public void configureFriendsOverlay(
+            boolean highlightFriendsTile,
+            boolean highlightFriendsOutline,
+            boolean highlightFriendsHull,
+            boolean highlightFriendsMinimap,
+            Color friendsHighlightColor,
+            PvPToolsConfig.MinimapAnimation friendsMinimapAnimation
+    ) {
+        this.highlightFriendsTile = highlightFriendsTile;
+        this.highlightFriendsOutline = highlightFriendsOutline;
+        this.highlightFriendsHull = highlightFriendsHull;
+        this.highlightFriendsMinimap = highlightFriendsMinimap;
+        this.friendsHighlightColor = friendsHighlightColor;
+        this.friendsMinimapAnimation = friendsMinimapAnimation;
+    }
+
+    public void configureIgnoreOverlay(
+            boolean highlightIgnoreTile,
+            boolean highlightIgnoreOutline,
+            boolean highlightIgnoreHull,
+            boolean highlightIgnoreMinimap,
+            Color ignoreHighlightColor,
+            PvPToolsConfig.MinimapAnimation ignoreMinimapAnimation
+    ) {
+        this.highlightIgnoreTile = highlightIgnoreTile;
+        this.highlightIgnoreOutline = highlightIgnoreOutline;
+        this.highlightIgnoreHull = highlightIgnoreHull;
+        this.highlightIgnoreMinimap = highlightIgnoreMinimap;
+        this.ignoreHighlightColor = ignoreHighlightColor;
+        this.ignoreMinimapAnimation = ignoreMinimapAnimation;
+    }
+
     @Override
     public Dimension render(Graphics2D graphics) {
         Player localPlayer = client.getLocalPlayer();
@@ -98,21 +140,76 @@ public class HighlightOverlay extends Overlay {
             return null;
         }
 
-        // Render Local Player highlights
         if (highlightConfig.isHighlightLocalPlayerEnabled()) {
-            renderPlayerHighlights(graphics, localPlayer, localPlayerColor, true, minimapAnimation, highlightConfig.getPlayerNameLocationLocal());
+            renderPlayerHighlights(
+                    graphics,
+                    localPlayer,
+                    localPlayerColor,
+                    true,
+                    minimapAnimation,
+                    highlightConfig.getPlayerNameLocationLocal()
+            );
         }
 
-        // Render Attackable Players highlights
         if (highlightConfig.isHighlightAttackableEnabled()) {
             for (Player player : client.getPlayers()) {
                 if (player != null && player != localPlayer && isAttackable(localPlayer, player)) {
-                    renderPlayerHighlights(graphics, player, attackablePlayerColor, false, attackableMinimapAnimation, highlightConfig.getPlayerNameLocationAttackable());
+                    renderPlayerHighlights(
+                            graphics,
+                            player,
+                            attackablePlayerColor,
+                            false,
+                            attackableMinimapAnimation,
+                            highlightConfig.getPlayerNameLocationAttackable()
+                    );
+                }
+            }
+        }
+
+        if (highlightConfig.isHighlightFriendsEnabled()) {
+            for (Player player : client.getPlayers()) {
+                if (player != null && player != localPlayer && client.isFriended(player.getName(), false)) {
+                    renderPlayerHighlights(
+                            graphics,
+                            player,
+                            friendsHighlightColor,
+                            false,
+                            friendsMinimapAnimation,
+                            highlightConfig.getFriendsNameLocation()
+                    );
+                }
+            }
+        }
+
+        if (highlightConfig.isHighlightIgnoreEnabled()) {
+            for (Player player : client.getPlayers()) {
+                if (player != null && isIgnored(player.getName())) {
+                    renderPlayerHighlights(
+                            graphics,
+                            player,
+                            ignoreHighlightColor,
+                            false,
+                            ignoreMinimapAnimation,
+                            PvPToolsConfig.PlayerNameLocation.ABOVE_HEAD
+                    );
                 }
             }
         }
 
         return null;
+    }
+
+    private boolean isIgnored(String playerName) {
+        if (playerName == null || client == null) {
+            return false;
+        }
+
+        // Sjekk IgnoreContainer (hvis tilgjengelig)
+        if (client.getIgnoreContainer() != null) {
+            return client.getIgnoreContainer().findByName(playerName) != null;
+        }
+
+        return false; // Returner false hvis ingen container er tilgjengelig
     }
 
     private boolean isAttackable(Player localPlayer, Player otherPlayer) {
@@ -134,20 +231,27 @@ public class HighlightOverlay extends Overlay {
         return worldTypes.contains(WorldType.PVP) || worldTypes.contains(WorldType.HIGH_RISK);
     }
 
-    private void renderPlayerHighlights(Graphics2D graphics, Player player, Color color, boolean isLocalPlayer, PvPToolsConfig.MinimapAnimation minimapAnimation, PvPToolsConfig.PlayerNameLocation nameLocation) {
-        if ((isLocalPlayer && highlightTile) || (!isLocalPlayer && highlightAttackableTile)) {
+    private void renderPlayerHighlights(
+            Graphics2D graphics,
+            Player player,
+            Color color,
+            boolean isLocalPlayer,
+            PvPToolsConfig.MinimapAnimation minimapAnimation,
+            PvPToolsConfig.PlayerNameLocation nameLocation
+    ) {
+        if (!isLocalPlayer && highlightIgnoreTile) {
             renderTileBorder(graphics, player, color);
         }
 
-        if ((isLocalPlayer && highlightOutline) || (!isLocalPlayer && highlightAttackableOutline)) {
+        if (!isLocalPlayer && highlightIgnoreOutline) {
             renderOutline(player, color);
         }
 
-        if ((isLocalPlayer && highlightHull) || (!isLocalPlayer && highlightAttackableHull)) {
+        if (!isLocalPlayer && highlightIgnoreHull) {
             renderHull(graphics, player, color);
         }
 
-        if ((isLocalPlayer && highlightMinimap) || (!isLocalPlayer && highlightAttackableMinimap)) {
+        if (!isLocalPlayer && highlightIgnoreMinimap) {
             highlightMinimapDot(graphics, player, color, minimapAnimation);
         }
 
@@ -200,18 +304,15 @@ public class HighlightOverlay extends Overlay {
             case Static:
                 drawDot(graphics, centerX, centerY, dotSize, color);
                 break;
-
             case Pulse:
                 long pulseSize = (System.currentTimeMillis() % 1000L) / 250;
                 drawDot(graphics, centerX, centerY, dotSize + (int) pulseSize * 2, color);
                 break;
-
             case Blink:
                 if ((System.currentTimeMillis() / 500L) % 2 == 0) {
                     drawDot(graphics, centerX, centerY, dotSize, color);
                 }
                 break;
-
             case Sonar:
                 long sonarSize = (System.currentTimeMillis() % 2000L) / 250;
                 drawTransparentCircle(graphics, centerX, centerY, dotSize + (int) sonarSize * 2, color);
@@ -237,24 +338,22 @@ public class HighlightOverlay extends Overlay {
             case ABOVE_HEAD:
                 textLocation = player.getCanvasTextLocation(graphics, nameText, player.getLogicalHeight() + 20);
                 break;
-
             case CENTER_OF_MODEL:
                 textLocation = player.getCanvasTextLocation(graphics, nameText, player.getLogicalHeight() / 2);
                 break;
-
             case RIGHT_OF_MODEL:
                 textLocation = player.getCanvasTextLocation(graphics, nameText, player.getLogicalHeight());
                 if (textLocation != null) {
-                    textLocation = new Point(textLocation.getX() + 10, textLocation.getY() - 5); // Justert til høyre
+                    textLocation = new Point(textLocation.getX() + 10, textLocation.getY() - 5);
                 }
                 break;
         }
 
         if (textLocation != null) {
-            graphics.setFont(new Font("Arial", Font.PLAIN, 11)); // Mindre font
-            graphics.setColor(new Color(0, 0, 0, 128)); // Skygge (sort, halvtransparent)
-            graphics.drawString(nameText, textLocation.getX() + 1, textLocation.getY() + 1); // Skyggeeffekt
-            graphics.setColor(color); // Bruker fargen fra konfigurasjonen
+            graphics.setFont(new Font("Arial", Font.PLAIN, 11));
+            graphics.setColor(new Color(0, 0, 0, 128));
+            graphics.drawString(nameText, textLocation.getX() + 1, textLocation.getY() + 1);
+            graphics.setColor(color);
             graphics.drawString(nameText, textLocation.getX(), textLocation.getY());
         }
     }

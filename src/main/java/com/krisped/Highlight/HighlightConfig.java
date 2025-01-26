@@ -132,6 +132,116 @@ public class HighlightConfig {
         return config.playerNameLocationAttackable();
     }
 
+    // Friends Highlight Configurations
+
+    /**
+     * Sjekker om hele "Highlight Friends"-seksjonen er aktivert.
+     */
+    public boolean isHighlightFriendsEnabled() {
+        return config.enableFriendsHighlight();
+    }
+
+    /**
+     * Sjekker om highlighting av fliser for venner er aktivert.
+     */
+    public boolean shouldHighlightFriendsTile() {
+        return isHighlightFriendsEnabled() && config.highlightFriendsTile();
+    }
+
+    /**
+     * Sjekker om outline highlighting for venner er aktivert.
+     */
+    public boolean shouldHighlightFriendsOutline() {
+        return isHighlightFriendsEnabled() && config.highlightFriendsOutline();
+    }
+
+    /**
+     * Sjekker om hull highlighting for venner er aktivert.
+     */
+    public boolean shouldHighlightFriendsHull() {
+        return isHighlightFriendsEnabled() && config.highlightFriendsHull();
+    }
+
+    /**
+     * Sjekker om minimap highlighting for venner er aktivert.
+     */
+    public boolean shouldHighlightFriendsMinimap() {
+        return isHighlightFriendsEnabled() && config.highlightFriendsMinimap();
+    }
+
+    /**
+     * Henter minimap-animasjonen for venner.
+     */
+    public PvPToolsConfig.MinimapAnimation getFriendsMinimapAnimation() {
+        return config.friendsMinimapAnimation();
+    }
+
+    /**
+     * Henter fargen for venner.
+     */
+    public Color getFriendsHighlightColor() {
+        Color defaultColor = Color.GREEN; // Standard farge hvis ingen er satt
+        return config.friendsHighlightColor() != null ? config.friendsHighlightColor() : defaultColor;
+    }
+
+    /**
+     * Henter plasseringen av navn og nivå for venner.
+     */
+    public PvPToolsConfig.PlayerNameLocation getFriendsNameLocation() {
+        return config.friendsNameLocation();
+    }
+
+    // Ignore List Highlight Configurations
+
+    /**
+     * Sjekker om hele "Highlight Ignore"-seksjonen er aktivert.
+     */
+    public boolean isHighlightIgnoreEnabled() {
+        return config.enableIgnoreHighlight();
+    }
+
+    /**
+     * Sjekker om highlighting av fliser for Ignore-listen er aktivert.
+     */
+    public boolean shouldHighlightIgnoreTile() {
+        return isHighlightIgnoreEnabled() && config.highlightIgnoreTile();
+    }
+
+    /**
+     * Sjekker om outline highlighting for Ignore-listen er aktivert.
+     */
+    public boolean shouldHighlightIgnoreOutline() {
+        return isHighlightIgnoreEnabled() && config.highlightIgnoreOutline();
+    }
+
+    /**
+     * Sjekker om hull highlighting for Ignore-listen er aktivert.
+     */
+    public boolean shouldHighlightIgnoreHull() {
+        return isHighlightIgnoreEnabled() && config.highlightIgnoreHull();
+    }
+
+    /**
+     * Sjekker om minimap highlighting for Ignore-listen er aktivert.
+     */
+    public boolean shouldHighlightIgnoreMinimap() {
+        return isHighlightIgnoreEnabled() && config.highlightIgnoreMinimap();
+    }
+
+    /**
+     * Henter minimap-animasjonen for Ignore-listen.
+     */
+    public PvPToolsConfig.MinimapAnimation getIgnoreMinimapAnimation() {
+        return config.ignoreMinimapAnimation();
+    }
+
+    /**
+     * Henter fargen for Ignore-listen.
+     */
+    public Color getIgnoreHighlightColor() {
+        return config.ignoreHighlightColor();
+    }
+
     // Debugging Utility
 
     /**
@@ -140,7 +250,9 @@ public class HighlightConfig {
     public String debugConfig() {
         return String.format(
                 "HighlightConfig Debug - Local Player: [Enabled: %s, Tile: %s, Outline: %s, Hull: %s, Minimap: %s, Color: %s, Animation: %s, NameLocation: %s] " +
-                        "Attackable Players: [Enabled: %s, Tile: %s, Outline: %s, Hull: %s, Minimap: %s, Color: %s, Animation: %s, NameLocation: %s]",
+                        "Attackable Players: [Enabled: %s, Tile: %s, Outline: %s, Hull: %s, Minimap: %s, Color: %s, Animation: %s, NameLocation: %s] " +
+                        "Friends: [Enabled: %s, Tile: %s, Outline: %s, Hull: %s, Minimap: %s, Color: %s, Animation: %s, NameLocation: %s] " +
+                        "Ignore: [Enabled: %s, Tile: %s, Outline: %s, Hull: %s, Minimap: %s, Color: %s, Animation: %s]",
                 isHighlightLocalPlayerEnabled(),
                 shouldHighlightTile(),
                 shouldHighlightOutline(),
@@ -156,7 +268,22 @@ public class HighlightConfig {
                 shouldHighlightAttackableMinimap(),
                 getAttackablePlayerColor(),
                 getAttackableMinimapAnimation(),
-                getPlayerNameLocationAttackable()
+                getPlayerNameLocationAttackable(),
+                isHighlightFriendsEnabled(),
+                shouldHighlightFriendsTile(),
+                shouldHighlightFriendsOutline(),
+                shouldHighlightFriendsHull(),
+                shouldHighlightFriendsMinimap(),
+                getFriendsHighlightColor(),
+                getFriendsMinimapAnimation(),
+                getFriendsNameLocation(),
+                isHighlightIgnoreEnabled(),
+                shouldHighlightIgnoreTile(),
+                shouldHighlightIgnoreOutline(),
+                shouldHighlightIgnoreHull(),
+                shouldHighlightIgnoreMinimap(),
+                getIgnoreHighlightColor(),
+                getIgnoreMinimapAnimation()
         );
     }
 }
