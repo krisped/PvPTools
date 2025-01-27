@@ -2,16 +2,15 @@ package com.krisped;
 
 import com.google.inject.Provides;
 import com.krisped.FightLogPanel.FightLog;
-import com.krisped.Highlight.HighlightConfig;
-import com.krisped.Highlight.HighlightFunction;
+import com.krisped.Highlight.*;
 import com.krisped.PlayerLookupPanel.PlayerLookup;
-import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SpriteManager;
@@ -20,10 +19,19 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.ui.overlay.OverlayLayer;
+import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.ui.overlay.OverlayPosition;
+import net.runelite.client.ui.overlay.OverlayPriority;
+import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 import net.runelite.client.util.ImageUtil;
 import net.runelite.client.eventbus.Subscribe;
 
+import javax.inject.Inject;
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @PluginDescriptor(
@@ -36,6 +44,9 @@ public class PvPToolsPlugin extends Plugin
 {
     @Inject
     private ClientToolbar clientToolbar;
+
+    @Inject
+    private OverlayManager overlayManager;
 
     @Inject
     private Client client;
@@ -53,41 +64,96 @@ public class PvPToolsPlugin extends Plugin
     private SpriteManager spriteManager;
 
     @Inject
-    private HighlightConfig highlightConfig;
+    private ModelOutlineRenderer modelOutlineRenderer;
 
     @Inject
-    private HighlightFunction highlightFunction;
+    private PvPToolsConfig config;
+
+    @Inject
+    private ConfigManager configManager;  // For å oppdatere config i TagPlayerHighlight
+
+    @Inject
+    private EventBus eventBus; // For å la TagPlayerHighlight subscribe til menu events
 
     private NavigationButton navButton;
     private PvPToolsPanel panel;
     private FightLog fightLog;
+
+    // Alle highlight-klasser
+    private final List<BaseHighlight> highlightList = new ArrayList<>();
+
+    // Overlay-objektet
+    private net.runelite.client.ui.overlay.Overlay highlightOverlay;
+    private boolean overlayAdded = false;
+
+    @Provides
+    PvPToolsConfig provideConfig(ConfigManager configManager)
+    {
+        return configManager.getConfig(PvPToolsConfig.class);
+    }
 
     @Override
     protected void startUp() throws Exception
     {
         log.info("[KP] PvP Tools started!");
 
-        // Initialize FightLog and PlayerLookup
+        // 1) FightLog / PlayerLookup / Panel
         fightLog = new FightLog(client, () -> panel.switchToHome());
         PlayerLookup playerLookup = new PlayerLookup(client, clientThread, hiscoreClient, itemManager, spriteManager);
-
-        // Set the action for the back button
         playerLookup.setOnBackButtonPressed(() -> panel.switchToHome());
-
-        // Setup main panel
         panel = new PvPToolsPanel(playerLookup, fightLog);
 
+        // 2) Lag sidebar-knapp
         final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/skull_icon.png");
         navButton = NavigationButton.builder()
                 .tooltip("[KP] PvP Tools")
                 .icon(icon)
                 .panel(panel)
                 .build();
-
         clientToolbar.addNavigation(navButton);
 
-        // Start Highlighting Logic
-        startHighlighting();
+        // 3) Opprett highlight-objekter
+        SettingsHighlight settings = new SettingsHighlight(config);
+
+        highlightList.add(new LocalPlayerHighlight(client, config, modelOutlineRenderer, settings));
+        highlightList.add(new AttackablePlayerHighlight(client, config, modelOutlineRenderer, settings));
+        highlightList.add(new FriendsHighlight(client, config, modelOutlineRenderer, settings));
+        highlightList.add(new IgnoreHighlight(client, config, modelOutlineRenderer, settings));
+        highlightList.add(new ChatChannelHighlight(client, config, modelOutlineRenderer, settings));
+
+        // Legg til "TagPlayerHighlight" med eventBus/configManager
+        highlightList.add(new TagPlayerHighlight(
+                client,
+                config,
+                modelOutlineRenderer,
+                settings,
+                configManager,
+                eventBus
+        ));
+
+        // 4) Opprett et anonymt Overlay som kaller each highlight's render()
+        highlightOverlay = new net.runelite.client.ui.overlay.Overlay()
+        {
+            @Override
+            public Dimension render(Graphics2D graphics)
+            {
+                if (!isAnyHighlightEnabled())
+                {
+                    return null;
+                }
+                for (BaseHighlight highlight : highlightList)
+                {
+                    highlight.render(graphics);
+                }
+                return null;
+            }
+        };
+
+        highlightOverlay.setPosition(OverlayPosition.DYNAMIC);
+        highlightOverlay.setLayer(OverlayLayer.ABOVE_WIDGETS);
+        highlightOverlay.setPriority(OverlayPriority.HIGH);
+
+        updateOverlayState();
     }
 
     @Override
@@ -96,29 +162,27 @@ public class PvPToolsPlugin extends Plugin
         log.info("[KP] PvP Tools stopped!");
         clientToolbar.removeNavigation(navButton);
 
-        // Stop Highlighting Logic
-        stopHighlighting();
+        // Fjern overlay hvis det er lagt til
+        if (overlayAdded)
+        {
+            overlayManager.remove(highlightOverlay);
+            overlayAdded = false;
+        }
+        highlightList.clear();
     }
 
-    @Provides
-    PvPToolsConfig provideConfig(ConfigManager configManager)
-    {
-        return configManager.getConfig(PvPToolsConfig.class);
-    }
-
-    // Handle chat messages and detect kills and deaths
+    // -------------------------------------------------------------
+    //  Håndterer chat-meldinger (kill/death) + FightLog
+    // -------------------------------------------------------------
     @Subscribe
     public void onChatMessage(ChatMessage event)
     {
         String message = event.getMessage();
-
-        // Detect kill event (e.g., "You have defeated")
         if (message.contains("You have defeated"))
         {
             String enemyName = message.replace("You have defeated ", "").trim();
             handleKillEvent(enemyName);
         }
-        // Detect death event (e.g., "You were defeated by")
         else if (message.contains("You were defeated by"))
         {
             String enemyName = message.replace("You were defeated by ", "").trim();
@@ -140,27 +204,17 @@ public class PvPToolsPlugin extends Plugin
         sendChatMessage("Death logged to Fight Log");
     }
 
-    private void sendChatMessage(String message)
+    private void sendChatMessage(String msg)
     {
         if (client != null)
         {
-            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[KP] PvP Tools: " + message, null);
+            client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[KP] PvP Tools: " + msg, null);
         }
     }
 
-    private void startHighlighting()
-    {
-        clientThread.invoke(() -> highlightFunction.start());
-    }
-
-    private void stopHighlighting()
-    {
-        clientThread.invoke(() -> highlightFunction.stop());
-    }
-
-    /**
-     * Dynamisk oppdatering når konfigurasjonen endres.
-     */
+    // -------------------------------------------------------------
+    //  Oppdatering når config endres
+    // -------------------------------------------------------------
     @Subscribe
     public void onConfigChanged(ConfigChanged event)
     {
@@ -168,10 +222,41 @@ public class PvPToolsPlugin extends Plugin
         {
             return;
         }
-
         log.info("Configuration changed: {}", event.getKey());
 
-        // Dynamisk oppdatering av highlight-logikk
-        clientThread.invoke(() -> highlightFunction.updateHighlights());
+        clientThread.invokeLater(this::updateOverlayState);
+    }
+
+    // -------------------------------------------------------------
+    //  Hjelpemetoder
+    // -------------------------------------------------------------
+    private void updateOverlayState()
+    {
+        if (isAnyHighlightEnabled())
+        {
+            if (!overlayAdded)
+            {
+                overlayManager.add(highlightOverlay);
+                overlayAdded = true;
+            }
+        }
+        else
+        {
+            if (overlayAdded)
+            {
+                overlayManager.remove(highlightOverlay);
+                overlayAdded = false;
+            }
+        }
+    }
+
+    private boolean isAnyHighlightEnabled()
+    {
+        return config.enableLocalPlayer()
+                || config.enableAttackablePlayers()
+                || config.enableFriendsHighlight()
+                || config.enableIgnoreHighlight()
+                || config.enableChatChannelHighlight()
+                || config.enableTagPlayerHighlight();
     }
 }
