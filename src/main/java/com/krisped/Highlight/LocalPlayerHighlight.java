@@ -2,6 +2,7 @@ package com.krisped.Highlight;
 
 import com.krisped.PvPToolsConfig;
 import net.runelite.api.Client;
+import net.runelite.api.Player;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
 import java.awt.*;
@@ -19,23 +20,22 @@ public class LocalPlayerHighlight extends BaseHighlight
     @Override
     public void render(Graphics2D graphics)
     {
-        if (!config.enableLocalPlayer())
-        {
-            return;
-        }
+        // Sjekk config
+        if (!config.enableLocalPlayer()) return;
 
-        var local = client.getLocalPlayer();
+        Player local = client.getLocalPlayer();
         if (local == null) return;
 
+        // Kall BaseHighlight
         renderPlayerHighlight(
                 graphics,
                 local,
-                config.highlightTile(),
-                config.highlightOutline(),
-                config.highlightHull(),
-                config.highlightMinimap(),
+                config.highlightTileLocal(),
+                config.highlightOutlineLocal(),
+                config.highlightHullLocal(),
+                config.highlightMinimapLocal(),
                 config.localPlayerColor(),
-                config.minimapAnimation(),
+                config.minimapAnimationLocal(),
                 config.playerNameLocationLocal()
         );
     }

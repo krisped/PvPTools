@@ -7,12 +7,13 @@ import net.runelite.client.ui.PluginPanel;
 import javax.swing.*;
 import java.awt.*;
 
-public class PvPToolsPanel extends PluginPanel {
-
+public class PvPToolsPanel extends PluginPanel
+{
     private final CardLayout cardLayout;
     private final JPanel mainPanel;
 
-    public PvPToolsPanel(PlayerLookup playerLookup, FightLog fightLog) {
+    public PvPToolsPanel(PlayerLookup playerLookup, FightLog fightLog)
+    {
         setLayout(new BorderLayout());
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
@@ -28,16 +29,17 @@ public class PvPToolsPanel extends PluginPanel {
         cardLayout.show(mainPanel, "home");
     }
 
-    private JPanel createHomePanel() {
+    private JPanel createHomePanel()
+    {
         JPanel homePanel = new JPanel(new BorderLayout());
         JLabel title = new JLabel("[KP] PvP Tools");
         title.setHorizontalAlignment(SwingConstants.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 16));
         homePanel.add(title, BorderLayout.NORTH);
 
-        JButton playerLookupButton = new JButton("Player Lookup");
-        playerLookupButton.addActionListener(e -> cardLayout.show(mainPanel, "playerLookup"));
-        homePanel.add(playerLookupButton, BorderLayout.CENTER);
+        JButton lookupButton = new JButton("Player Lookup");
+        lookupButton.addActionListener(e -> cardLayout.show(mainPanel, "playerLookup"));
+        homePanel.add(lookupButton, BorderLayout.CENTER);
 
         JButton fightLogButton = new JButton("Fight Log");
         fightLogButton.addActionListener(e -> cardLayout.show(mainPanel, "fightLog"));
@@ -46,7 +48,8 @@ public class PvPToolsPanel extends PluginPanel {
         return homePanel;
     }
 
-    public void switchToHome() {
+    public void switchToHome()
+    {
         cardLayout.show(mainPanel, "home");
     }
 }

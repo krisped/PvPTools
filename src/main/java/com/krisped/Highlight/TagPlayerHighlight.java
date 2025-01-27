@@ -1,9 +1,9 @@
 package com.krisped.Highlight;
 
-import com.google.inject.Inject;
 import com.krisped.PvPToolsConfig;
 import net.runelite.api.*;
 import net.runelite.api.events.MenuEntryAdded;
+import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
@@ -14,52 +14,63 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Lar deg tagge spillere manuelt (via config-liste eller høyreklikk).
- * Viser kun "Tag" under "Trade with <player>" for å unngå at det
- * dukker opp under Attack, Follow, osv.
+ * Lar deg tagge spillere manuelt (via config-liste) eller
+ * ved å klikke "Tag" i menyen (under "Trade with <player>").
+ * Klikket navn limes rett i config-linjen (taggedPlayersList).
  */
 public class TagPlayerHighlight extends BaseHighlight
 {
     private final ConfigManager configManager;
-    private final EventBus eventBus;
+    private EventBus eventBus;
+    private boolean eventsRegistered = false;
 
-    @Inject
-    public TagPlayerHighlight(Client client,
-                              PvPToolsConfig config,
-                              ModelOutlineRenderer modelOutlineRenderer,
-                              SettingsHighlight settingsHighlight,
-                              ConfigManager configManager,
-                              EventBus eventBus)
+    public TagPlayerHighlight(
+            Client client,
+            PvPToolsConfig config,
+            ModelOutlineRenderer modelOutlineRenderer,
+            SettingsHighlight settingsHighlight,
+            ConfigManager configManager
+    )
     {
         super(client, config, modelOutlineRenderer, settingsHighlight);
         this.configManager = configManager;
-        this.eventBus = eventBus;
+    }
 
-        // Lytt til menyhendelser
-        eventBus.register(this);
+    public void registerEvents(EventBus eventBus)
+    {
+        if (!eventsRegistered)
+        {
+            this.eventBus = eventBus;
+            eventBus.register(this);
+            eventsRegistered = true;
+        }
+    }
+
+    public void unregisterEvents()
+    {
+        if (eventsRegistered && eventBus != null)
+        {
+            eventBus.unregister(this);
+            eventBus = null;
+            eventsRegistered = false;
+        }
     }
 
     @Override
     public void render(Graphics2D graphics)
     {
-        // Tegn bare hvis Tag Player Highlight er på
-        if (!config.enableTagPlayerHighlight())
-        {
-            return;
-        }
+        if (!config.enableTagPlayerHighlight()) return;
 
         Player local = client.getLocalPlayer();
         if (local == null) return;
 
-        // Hent alle "taggede" spillere (lowercase)
-        Set<String> taggedPlayers = parseTaggedPlayersList();
+        Set<String> tagged = parseTaggedPlayersList();
 
-        // Loop over players i verden
         for (Player p : client.getPlayers())
         {
             if (p == null) continue;
-            String nameLc = cleanName(p.getName());
-            if (taggedPlayers.contains(nameLc))
+            String nameLc = cleanNameForList(p.getName());
+            if (tagged.contains(nameLc))
             {
                 renderPlayerHighlight(
                         graphics,
@@ -76,50 +87,56 @@ public class TagPlayerHighlight extends BaseHighlight
         }
     }
 
-    /**
-     * Overvåker menyhendinger. Hvis menypunktet er "Trade with", legger vi til "Tag".
-     */
     @Subscribe
     public void onMenuEntryAdded(MenuEntryAdded event)
     {
-        // Bare hvis Tag Player er på og Right Click Tag er aktivert.
+        if (!config.enableTagPlayerHighlight() || !config.enableRightClickTagPlayer())
+        {
+            return;
+        }
+        MenuEntry entry = event.getMenuEntry();
+        if (entry == null) return;
+
+        String opt = entry.getOption();
+        if (opt == null) return;
+
+        if (opt.equalsIgnoreCase("Trade with"))
+        {
+            Color c = config.tagHighlightColor();
+            String colorTag = String.format("<col=%02X%02X%02X>", c.getRed(), c.getGreen(), c.getBlue());
+
+            client.createMenuEntry(client.getMenuEntries().length)
+                    .setOption(colorTag + "Tag</col>")
+                    .setTarget(entry.getTarget())
+                    .setType(MenuAction.RUNELITE);
+        }
+    }
+
+    @Subscribe
+    public void onMenuOptionClicked(MenuOptionClicked event)
+    {
         if (!config.enableTagPlayerHighlight() || !config.enableRightClickTagPlayer())
         {
             return;
         }
 
-        MenuEntry menuEntry = event.getMenuEntry();
-        // Hent "option" - f.eks. "Trade with"
-        String baseOpt = menuEntry.getOption();
-        if (baseOpt == null)
+        String rawOption = event.getMenuOption();
+        if (rawOption == null) return;
+
+        String optionNoColor = rawOption.replaceAll("<[^>]*>", "").trim();
+        if (!optionNoColor.equalsIgnoreCase("Tag"))
         {
             return;
         }
 
-        // Sjekk om baseOpt er "Trade with" (der du vil legge inn Tag)
-        if (baseOpt.equalsIgnoreCase("Trade with"))
-        {
-            // Velg farge fra config
-            Color color = config.tagHighlightColor();
-            String colorTag = String.format("<col=%02X%02X%02X>", color.getRed(), color.getGreen(), color.getBlue());
+        // f.eks. <col=ffffff>SomeName (level-101)
+        String rawTarget = event.getMenuTarget();
+        if (rawTarget == null) rawTarget = "";
 
-            // Legg til en RUNELITE-meny for "Tag"
-            client.createMenuEntry(-1)
-                    .setOption(colorTag + "Tag</col>") // Eks. <col=FFA500>Tag</col>
-                    .setTarget(menuEntry.getTarget())  // Samme target, f.eks. <col=ffffff>PlayerName
-                    .setType(MenuAction.RUNELITE)
-                    .onClick(e ->
-                    {
-                        // Her lagrer vi navnet rett i config-liste
-                        String playerName = cleanName(menuEntry.getTarget());
-                        addPlayerToTaggedList(playerName);
-                    });
-        }
+        String targetName = cleanNameForList(rawTarget);
+        addPlayerToTaggedList(targetName);
     }
 
-    // ------------------------------------------------
-    //  Metoder for parsing/lagring av config-liste
-    // ------------------------------------------------
     private Set<String> parseTaggedPlayersList()
     {
         Set<String> result = new HashSet<>();
@@ -132,10 +149,10 @@ public class TagPlayerHighlight extends BaseHighlight
         String[] lines = raw.split("\r?\n");
         for (String line : lines)
         {
-            String name = cleanName(line);
-            if (!name.isEmpty())
+            String nm = cleanNameForList(line);
+            if (!nm.isEmpty())
             {
-                result.add(name);
+                result.add(nm);
             }
         }
         return result;
@@ -143,40 +160,30 @@ public class TagPlayerHighlight extends BaseHighlight
 
     private void addPlayerToTaggedList(String playerName)
     {
-        if (playerName.isEmpty())
-        {
-            return;
-        }
+        if (playerName.isEmpty()) return;
 
-        // Sjekk om allerede tagget
         Set<String> all = parseTaggedPlayersList();
-        if (all.contains(playerName))
-        {
-            return; // finnes fra før
-        }
+        if (all.contains(playerName)) return;
 
         String existing = config.taggedPlayersList();
-        if (existing == null)
-        {
-            existing = "";
-        }
+        if (existing == null) existing = "";
 
-        // Legg til på ny linje
-        String newValue = existing.isEmpty()
+        String newVal = existing.isEmpty()
                 ? playerName
                 : existing + "\n" + playerName;
 
-        // Oppdater config
-        configManager.setConfiguration("pvptools", "taggedPlayersList", newValue);
+        configManager.setConfiguration("pvptools", "taggedPlayersList", newVal);
     }
 
-    private String cleanName(String n)
+    private String cleanNameForList(String raw)
     {
-        if (n == null) return "";
-        // Fjerner fargekoder, NBSP, og gjør lowercase
-        return n.replaceAll("<.*?>", "")
-                .replace('\u00A0', ' ')
-                .toLowerCase()
-                .trim();
+        if (raw==null) return "";
+        // fjern <col=...> og lignende
+        String noCol = raw.replaceAll("<.*?>","");
+        // fjern (level-xxx)
+        String noLevel = noCol.replaceAll("\\(level-\\d+\\)","");
+        // NBSP
+        String replaced = noLevel.replace('\u00A0',' ');
+        return replaced.trim().toLowerCase();
     }
 }

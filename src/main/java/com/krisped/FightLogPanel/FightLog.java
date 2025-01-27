@@ -3,8 +3,8 @@ package com.krisped.FightLogPanel;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import net.runelite.api.Client;
 import net.runelite.api.ChatMessageType;
+import net.runelite.api.Client;
 
 import javax.swing.*;
 import java.awt.*;
@@ -15,7 +15,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FightLog extends JPanel {
+public class FightLog extends JPanel
+{
     private static final String BASE_PATH = System.getProperty("user.home") + "/Documents/KP Plugins/Fight Log/";
     private static final String FILE_PATH = BASE_PATH + "fightlog.json";
     private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -24,11 +25,14 @@ public class FightLog extends JPanel {
     private final Runnable onBackButtonPressed;
     private final JTextArea logArea;
 
-    public FightLog(Client client, Runnable onBackButtonPressed) {
-        if (client == null) {
+    public FightLog(Client client, Runnable onBackButtonPressed)
+    {
+        if (client == null)
+        {
             throw new IllegalArgumentException("Client cannot be null!");
         }
-        if (onBackButtonPressed == null) {
+        if (onBackButtonPressed == null)
+        {
             throw new IllegalArgumentException("Runnable cannot be null!");
         }
 
@@ -37,7 +41,7 @@ public class FightLog extends JPanel {
 
         setLayout(new BorderLayout());
 
-        // Last inn data fra JSON
+        // Last inn data
         Map<String, PlayerStats> loadedData = loadFightLog();
         playerStatsMap = (loadedData != null) ? loadedData : new HashMap<>();
 
@@ -47,7 +51,7 @@ public class FightLog extends JPanel {
 
         logArea = new JTextArea();
         logArea.setEditable(false);
-        updateLogArea(); // Oppdater grensesnittet ved oppstart
+        updateLogArea();
         add(new JScrollPane(logArea), BorderLayout.CENTER);
 
         JButton backButton = new JButton("Back");
@@ -55,41 +59,48 @@ public class FightLog extends JPanel {
         add(backButton, BorderLayout.SOUTH);
     }
 
-    public void logFight(String playerName, boolean isKill) {
+    public void logFight(String playerName, boolean isKill)
+    {
         PlayerStats stats = playerStatsMap.getOrDefault(playerName, new PlayerStats(playerName));
-        if (isKill) {
+        if (isKill)
+        {
             stats.incrementWins();
             sendChatMessage("Kill logged to Fight Log");
-        } else {
+        }
+        else
+        {
             stats.incrementLosses();
             sendChatMessage("Death logged to Fight Log");
         }
         playerStatsMap.put(playerName, stats);
 
-        // Oppdater sidepanelet først
         SwingUtilities.invokeLater(this::updateLogArea);
-
-        // Oppdater JSON-filen etterpå
         saveFightLog();
     }
 
-    private void saveFightLog() {
-        try {
+    private void saveFightLog()
+    {
+        try
+        {
             ensureDirectoryExists();
             String jsonData = gson.toJson(playerStatsMap);
             Files.write(Paths.get(FILE_PATH), jsonData.getBytes());
-            logInfo("FightLog saved to " + FILE_PATH);
-        } catch (IOException e) {
-            logError("Failed to save FightLog: " + e.getMessage());
+        }
+        catch (IOException e)
+        {
+            System.err.println("Failed to save FightLog: " + e.getMessage());
         }
     }
 
-    private Map<String, PlayerStats> loadFightLog() {
-        try {
+    private Map<String, PlayerStats> loadFightLog()
+    {
+        try
+        {
             ensureDirectoryExists();
             File file = new File(FILE_PATH);
-            if (!file.exists()) {
-                logInfo("File not found, creating test data...");
+            if (!file.exists())
+            {
+                // Opprett testdata
                 Map<String, PlayerStats> testData = new HashMap<>();
                 testData.put("Test", new PlayerStats("Test", 1, 5));
                 saveTestFile(testData);
@@ -97,108 +108,97 @@ public class FightLog extends JPanel {
             }
 
             String jsonData = new String(Files.readAllBytes(Paths.get(FILE_PATH)));
-            logInfo("Loaded JSON data: " + jsonData);
-            return gson.fromJson(jsonData, new TypeToken<Map<String, PlayerStats>>() {}.getType());
-        } catch (IOException e) {
-            logError("Failed to load FightLog: " + e.getMessage());
+            return gson.fromJson(jsonData, new TypeToken<Map<String, PlayerStats>>(){}.getType());
+        }
+        catch (IOException e)
+        {
+            System.err.println("Failed to load FightLog: " + e.getMessage());
             return new HashMap<>();
         }
     }
 
-    private void ensureDirectoryExists() throws IOException {
+    private void ensureDirectoryExists() throws IOException
+    {
         File dir = new File(BASE_PATH);
-        if (!dir.exists() && !dir.mkdirs()) {
+        if (!dir.exists() && !dir.mkdirs())
+        {
             throw new IOException("Failed to create directory: " + BASE_PATH);
         }
     }
 
-    private void updateLogArea() {
-        if (playerStatsMap == null || playerStatsMap.isEmpty()) {
+    private void updateLogArea()
+    {
+        if (playerStatsMap.isEmpty())
+        {
             logArea.setText("No data available.");
             return;
         }
-        logArea.setText(""); // Tøm loggområdet
-
-        // Bruk BoxLayout for å vise spillerne vertikalt
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-
-        playerStatsMap.forEach((playerName, stats) -> {
-            JPanel playerPanel = new JPanel();
-            playerPanel.setLayout(new BorderLayout());
-            playerPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 2)); // Legg til ramme
-
-            JLabel nameLabel = new JLabel(playerName, SwingConstants.CENTER);
-            nameLabel.setFont(new Font("Arial", Font.BOLD, 14));
-            nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            playerPanel.add(nameLabel, BorderLayout.NORTH);
-
-            JLabel statsLabel = new JLabel("Wins=" + stats.getWins() + ", Losses=" + stats.getLosses());
-            statsLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-            statsLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            playerPanel.add(statsLabel, BorderLayout.CENTER);
-
-            playerPanel.setPreferredSize(new Dimension(200, 50));
-            playerPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70)); // Passer størrelsen til panelet
-
-            add(playerPanel); // Legg til boksene for spillerne
-        });
-
-        revalidate();
-        repaint();
+        logArea.setText("");
+        // For enkelhet, bare liste opp data
+        for (Map.Entry<String, PlayerStats> e : playerStatsMap.entrySet())
+        {
+            String name = e.getKey();
+            PlayerStats st = e.getValue();
+            logArea.append(name + " => Wins=" + st.getWins() + ", Losses=" + st.getLosses() + "\n");
+        }
     }
 
-    private void sendChatMessage(String message) {
-        if (client != null) {
+    private void sendChatMessage(String message)
+    {
+        if (client != null)
+        {
             client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[KP] PvP Tools: " + message, null);
         }
     }
 
-    private void saveTestFile(Map<String, PlayerStats> testData) {
-        try {
-            String jsonData = gson.toJson(testData);
-            Files.write(Paths.get(FILE_PATH), jsonData.getBytes());
-            logInfo("Test data written to " + FILE_PATH);
-        } catch (IOException e) {
-            logError("Failed to save test data: " + e.getMessage());
+    private void saveTestFile(Map<String, PlayerStats> testData)
+    {
+        try
+        {
+            String json = gson.toJson(testData);
+            Files.write(Paths.get(FILE_PATH), json.getBytes());
+        }
+        catch (IOException e)
+        {
+            System.err.println("Failed to save test data: " + e.getMessage());
         }
     }
 
-    private void logInfo(String message) {
-        System.out.println("[INFO] " + message);
-    }
-
-    private void logError(String message) {
-        System.err.println("[ERROR] " + message);
-    }
-
-    private static class PlayerStats {
+    private static class PlayerStats
+    {
         private final String playerName;
         private int wins;
         private int losses;
 
-        public PlayerStats(String playerName) {
+        public PlayerStats(String playerName)
+        {
             this.playerName = playerName;
         }
 
-        public PlayerStats(String playerName, int wins, int losses) {
+        public PlayerStats(String playerName, int wins, int losses)
+        {
             this.playerName = playerName;
             this.wins = wins;
             this.losses = losses;
         }
 
-        public void incrementWins() {
+        public void incrementWins()
+        {
             wins++;
         }
 
-        public void incrementLosses() {
+        public void incrementLosses()
+        {
             losses++;
         }
 
-        public int getWins() {
+        public int getWins()
+        {
             return wins;
         }
 
-        public int getLosses() {
+        public int getLosses()
+        {
             return losses;
         }
     }

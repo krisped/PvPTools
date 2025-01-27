@@ -6,21 +6,60 @@ import java.awt.*;
 @ConfigGroup("pvptools")
 public interface PvPToolsConfig extends Config
 {
-    // ------------------------------------------------------
-    // (1) Settings Highlight (outlineThickness osv.)
-    // ------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // 1) Enable Sidepanel
+    // ------------------------------------------------------------------------
+    @ConfigItem(
+            keyName = "enableSidepanel",
+            name = "Enable Sidepanel",
+            description = "Show the PvP Tools panel in the sidebar?"
+    )
+    default boolean enableSidepanel()
+    {
+        return true;
+    }
+
+    // ------------------------------------------------------------------------
+    // 2) Settings Highlight (global thickness, minimap circle, anim speed 1..10)
+    // ------------------------------------------------------------------------
     @ConfigSection(
             name = "Settings Highlight",
-            description = "Global highlight settings (e.g. outline thickness).",
+            description = "Global highlight settings (tile/outline/hull thickness, minimap circle, anim speed factor).",
             position = 0,
             closedByDefault = true
     )
     String highlightSettingsSection = "highlightSettingsSection";
 
+    @Range(
+            min = 1,
+            max = 10
+    )
+    @ConfigItem(
+            keyName = "minimapAnimSpeed",
+            name = "Minimap Anim Speed",
+            description = "Animation speed factor (1=fastest, 10=slowest).",
+            section = highlightSettingsSection
+    )
+    default int minimapAnimSpeed()
+    {
+        return 5; // mid-range
+    }
+
+    @ConfigItem(
+            keyName = "tileThickness",
+            name = "Tile Thickness",
+            description = "Line thickness for tile highlights.",
+            section = highlightSettingsSection
+    )
+    default int tileThickness()
+    {
+        return 1;
+    }
+
     @ConfigItem(
             keyName = "outlineThickness",
             name = "Outline Thickness",
-            description = "Thickness of the highlight outline.",
+            description = "Outline thickness for model highlight.",
             section = highlightSettingsSection
     )
     default int outlineThickness()
@@ -28,22 +67,143 @@ public interface PvPToolsConfig extends Config
         return 2;
     }
 
-    // ------------------------------------------------------
-    // (2) Attackable Players
-    // ------------------------------------------------------
+    @ConfigItem(
+            keyName = "hullThickness",
+            name = "Hull Thickness",
+            description = "Stroke thickness around hull highlight.",
+            section = highlightSettingsSection
+    )
+    default int hullThickness()
+    {
+        return 1;
+    }
+
+    @ConfigItem(
+            keyName = "minimapCircleSize",
+            name = "Minimap Circle Size",
+            description = "Base size of the minimap highlight circle.",
+            section = highlightSettingsSection
+    )
+    default int minimapCircleSize()
+    {
+        return 6;
+    }
+
+    // ------------------------------------------------------------------------
+    // 3) Local Player
+    // ------------------------------------------------------------------------
     @ConfigSection(
-            name = "Highlight Attackable Players",
-            description = "Settings related to highlighting attackable players.",
+            name = "Highlight Local Player",
+            description = "Settings for local player highlight.",
             position = 1,
             closedByDefault = true
     )
-    String highlightAttackablePlayersSection = "highlightAttackablePlayers";
+    String localPlayerSection = "localPlayerSection";
+
+    @ConfigItem(
+            keyName = "enableLocalPlayer",
+            name = "Enable Local Player",
+            description = "Enable highlight on local player?",
+            section = localPlayerSection
+    )
+    default boolean enableLocalPlayer()
+    {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "localPlayerColor",
+            name = "Local Player Color",
+            description = "Color for local player's highlight",
+            section = localPlayerSection
+    )
+    default Color localPlayerColor()
+    {
+        return Color.CYAN;
+    }
+
+    @ConfigItem(
+            keyName = "playerNameLocationLocal",
+            name = "Name & Level",
+            description = "Show local player's name/level location",
+            section = localPlayerSection
+    )
+    default PlayerNameLocation playerNameLocationLocal()
+    {
+        return PlayerNameLocation.DISABLED;
+    }
+
+    @ConfigItem(
+            keyName = "highlightTileLocal",
+            name = "Highlight Tile",
+            description = "Highlight local player's tile?",
+            section = localPlayerSection
+    )
+    default boolean highlightTileLocal()
+    {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "highlightOutlineLocal",
+            name = "Highlight Outline",
+            description = "Highlight local player's outline?",
+            section = localPlayerSection
+    )
+    default boolean highlightOutlineLocal()
+    {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "highlightHullLocal",
+            name = "Highlight Hull",
+            description = "Highlight local player's hull?",
+            section = localPlayerSection
+    )
+    default boolean highlightHullLocal()
+    {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "highlightMinimapLocal",
+            name = "Highlight Minimap",
+            description = "Highlight local player's minimap dot?",
+            section = localPlayerSection
+    )
+    default boolean highlightMinimapLocal()
+    {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "minimapAnimationLocal",
+            name = "Minimap Animation",
+            description = "Animation for local player's minimap highlight",
+            section = localPlayerSection
+    )
+    default MinimapAnimation minimapAnimationLocal()
+    {
+        return MinimapAnimation.Static;
+    }
+
+    // ------------------------------------------------------------------------
+    // 4) Attackable Players
+    // ------------------------------------------------------------------------
+    @ConfigSection(
+            name = "Highlight Attackable Players",
+            description = "Settings for players you can attack.",
+            position = 2,
+            closedByDefault = true
+    )
+    String attackableSection = "attackableSection";
 
     @ConfigItem(
             keyName = "enableAttackablePlayers",
             name = "Enable Attackable Players",
-            description = "Enable or disable all highlighting for attackable players.",
-            section = highlightAttackablePlayersSection
+            description = "Highlight players you can attack?",
+            section = attackableSection
     )
     default boolean enableAttackablePlayers()
     {
@@ -51,10 +211,21 @@ public interface PvPToolsConfig extends Config
     }
 
     @ConfigItem(
+            keyName = "highlightColorAttackable",
+            name = "Attackable Color",
+            description = "Color for attackable players highlight",
+            section = attackableSection
+    )
+    default Color highlightColorAttackable()
+    {
+        return Color.BLUE;
+    }
+
+    @ConfigItem(
             keyName = "playerNameLocationAttackable",
-            name = "Name and Level",
-            description = "Display name and combat level of attackable players.",
-            section = highlightAttackablePlayersSection
+            name = "Name & Level",
+            description = "Show name/level for attackable players",
+            section = attackableSection
     )
     default PlayerNameLocation playerNameLocationAttackable()
     {
@@ -64,8 +235,8 @@ public interface PvPToolsConfig extends Config
     @ConfigItem(
             keyName = "highlightTileAttackable",
             name = "Highlight Tile",
-            description = "Highlight the tile of attackable players.",
-            section = highlightAttackablePlayersSection
+            description = "Highlight tile for attackable players?",
+            section = attackableSection
     )
     default boolean highlightTileAttackable()
     {
@@ -74,9 +245,9 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "highlightOutlineAttackable",
-            name = "Highlight Outline",
-            description = "Highlight the outline of attackable players.",
-            section = highlightAttackablePlayersSection
+            name = "Outline",
+            description = "Highlight outline for attackable players?",
+            section = attackableSection
     )
     default boolean highlightOutlineAttackable()
     {
@@ -85,9 +256,9 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "highlightHullAttackable",
-            name = "Highlight Hull",
-            description = "Highlight the hull (convex hull) of attackable players.",
-            section = highlightAttackablePlayersSection
+            name = "Hull",
+            description = "Highlight hull for attackable players?",
+            section = attackableSection
     )
     default boolean highlightHullAttackable()
     {
@@ -96,9 +267,9 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "highlightMinimapAttackable",
-            name = "Highlight Minimap",
-            description = "Highlight the minimap dot of attackable players.",
-            section = highlightAttackablePlayersSection
+            name = "Minimap",
+            description = "Highlight minimap for attackable players?",
+            section = attackableSection
     )
     default boolean highlightMinimapAttackable()
     {
@@ -108,156 +279,41 @@ public interface PvPToolsConfig extends Config
     @ConfigItem(
             keyName = "minimapAnimationAttackable",
             name = "Minimap Animation",
-            description = "Select the animation type for attackable players' minimap highlights.",
-            section = highlightAttackablePlayersSection
+            description = "Animation for attackable players' minimap highlight",
+            section = attackableSection
     )
     default MinimapAnimation minimapAnimationAttackable()
     {
         return MinimapAnimation.Static;
     }
 
-    // Default color = Blue
-    @ConfigItem(
-            keyName = "highlightColorAttackable",
-            name = "Attackable Players Color",
-            description = "Select the highlight color for attackable players.",
-            section = highlightAttackablePlayersSection
-    )
-    default Color highlightColorAttackable()
-    {
-        return Color.BLUE;
-    }
-
-
-    // ------------------------------------------------------
-    // (3) Local Player
-    // ------------------------------------------------------
-    @ConfigSection(
-            name = "Highlight Local Player",
-            description = "Settings related to highlighting the local player.",
-            position = 2,
-            closedByDefault = true
-    )
-    String highlightLocalPlayerSection = "highlightLocalPlayer";
-
-    @ConfigItem(
-            keyName = "enableLocalPlayer",
-            name = "Enable Local Player",
-            description = "Enable highlighting of the local player.",
-            section = highlightLocalPlayerSection
-    )
-    default boolean enableLocalPlayer()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "playerNameLocationLocal",
-            name = "Name and Level",
-            description = "Display name and combat level of the local player.",
-            section = highlightLocalPlayerSection
-    )
-    default PlayerNameLocation playerNameLocationLocal()
-    {
-        return PlayerNameLocation.DISABLED;
-    }
-
-    @ConfigItem(
-            keyName = "highlightTile",
-            name = "Highlight Tile",
-            description = "Highlight the tile the local player is standing on.",
-            section = highlightLocalPlayerSection
-    )
-    default boolean highlightTile()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "highlightOutline",
-            name = "Highlight Outline",
-            description = "Highlight the outline of the local player.",
-            section = highlightLocalPlayerSection
-    )
-    default boolean highlightOutline()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "highlightHull",
-            name = "Highlight Hull",
-            description = "Highlight the hull (convex hull) of the local player.",
-            section = highlightLocalPlayerSection
-    )
-    default boolean highlightHull()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "highlightMinimap",
-            name = "Highlight Minimap",
-            description = "Highlight the local player's dot on the minimap.",
-            section = highlightLocalPlayerSection
-    )
-    default boolean highlightMinimap()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "minimapAnimation",
-            name = "Minimap Animation",
-            description = "Select the animation type for the minimap highlight.",
-            section = highlightLocalPlayerSection
-    )
-    default MinimapAnimation minimapAnimation()
-    {
-        return MinimapAnimation.Static;
-    }
-
-    // Default color = Cyan
-    @ConfigItem(
-            keyName = "localPlayerColor",
-            name = "Local Player Color",
-            description = "Select the color for all local player highlights.",
-            section = highlightLocalPlayerSection
-    )
-    default Color localPlayerColor()
-    {
-        return Color.CYAN;
-    }
-
-
-    // ------------------------------------------------------
-    // (4) Friends
-    // ------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // 5) Friends
+    // ------------------------------------------------------------------------
     @ConfigSection(
             name = "Highlight Friends",
-            description = "Settings related to highlighting friends.",
+            description = "Settings for friend highlight",
             position = 3,
             closedByDefault = true
     )
-    String highlightFriendsSection = "highlightFriends";
+    String friendsSection = "friendsSection";
 
     @ConfigItem(
             keyName = "enableFriendsHighlight",
             name = "Enable Friends Highlight",
-            description = "Enable or disable all highlighting for friends.",
-            section = highlightFriendsSection
+            description = "Highlight your friends?",
+            section = friendsSection
     )
     default boolean enableFriendsHighlight()
     {
         return false;
     }
 
-    // Default color = Green
     @ConfigItem(
             keyName = "friendsHighlightColor",
-            name = "Friends Highlight Color",
-            description = "Select the highlight color for friends.",
-            section = highlightFriendsSection
+            name = "Friends Color",
+            description = "Color for highlighting friends",
+            section = friendsSection
     )
     default Color friendsHighlightColor()
     {
@@ -266,9 +322,9 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "friendsNameLocation",
-            name = "Friends Name and Level",
-            description = "Display name and combat level of friends.",
-            section = highlightFriendsSection
+            name = "Name & Level",
+            description = "Where to show name/level for friends",
+            section = friendsSection
     )
     default PlayerNameLocation friendsNameLocation()
     {
@@ -277,31 +333,31 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "highlightFriendsTile",
-            name = "Highlight Tile",
-            description = "Highlight the tile of friends.",
-            section = highlightFriendsSection
+            name = "Tile",
+            description = "Highlight tile for friends?",
+            section = friendsSection
     )
     default boolean highlightFriendsTile()
     {
-        return true;
+        return false;
     }
 
     @ConfigItem(
             keyName = "highlightFriendsOutline",
-            name = "Highlight Outline",
-            description = "Highlight the outline of friends.",
-            section = highlightFriendsSection
+            name = "Outline",
+            description = "Highlight outline for friends?",
+            section = friendsSection
     )
     default boolean highlightFriendsOutline()
     {
-        return true;
+        return false;
     }
 
     @ConfigItem(
             keyName = "highlightFriendsHull",
-            name = "Highlight Hull",
-            description = "Highlight the hull (convex hull) of friends.",
-            section = highlightFriendsSection
+            name = "Hull",
+            description = "Highlight hull for friends?",
+            section = friendsSection
     )
     default boolean highlightFriendsHull()
     {
@@ -310,55 +366,53 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "highlightFriendsMinimap",
-            name = "Highlight Minimap",
-            description = "Highlight the minimap dot of friends.",
-            section = highlightFriendsSection
+            name = "Minimap",
+            description = "Highlight minimap dot for friends?",
+            section = friendsSection
     )
     default boolean highlightFriendsMinimap()
     {
-        return true;
+        return false;
     }
 
     @ConfigItem(
             keyName = "friendsMinimapAnimation",
             name = "Minimap Animation",
-            description = "Select the animation type for friends' minimap highlights.",
-            section = highlightFriendsSection
+            description = "Friends minimap highlight animation",
+            section = friendsSection
     )
     default MinimapAnimation friendsMinimapAnimation()
     {
-        return MinimapAnimation.Pulse;
+        return MinimapAnimation.Static;
     }
 
-
-    // ------------------------------------------------------
-    // (5) Ignore
-    // ------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // 6) Ignore
+    // ------------------------------------------------------------------------
     @ConfigSection(
             name = "Highlight Ignore",
-            description = "Settings related to highlighting players on the Ignore list.",
+            description = "Ignore list highlight",
             position = 4,
             closedByDefault = true
     )
-    String highlightIgnoreSection = "highlightIgnore";
+    String ignoreSection = "ignoreSection";
 
     @ConfigItem(
             keyName = "enableIgnoreHighlight",
             name = "Enable Ignore Highlight",
-            description = "Enable or disable all highlighting for players on the Ignore list.",
-            section = highlightIgnoreSection
+            description = "Highlight players on your ignore list?",
+            section = ignoreSection
     )
     default boolean enableIgnoreHighlight()
     {
         return false;
     }
 
-    // Default color = Red
     @ConfigItem(
             keyName = "ignoreHighlightColor",
-            name = "Ignore Highlight Color",
-            description = "Select the highlight color for players on the Ignore list.",
-            section = highlightIgnoreSection
+            name = "Ignore Color",
+            description = "Color used for ignore highlight",
+            section = ignoreSection
     )
     default Color ignoreHighlightColor()
     {
@@ -367,31 +421,31 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "highlightIgnoreTile",
-            name = "Highlight Tile",
-            description = "Highlight the tile of players on the Ignore list.",
-            section = highlightIgnoreSection
+            name = "Tile",
+            description = "Highlight tile for ignored players?",
+            section = ignoreSection
     )
     default boolean highlightIgnoreTile()
     {
-        return true;
+        return false;
     }
 
     @ConfigItem(
             keyName = "highlightIgnoreOutline",
-            name = "Highlight Outline",
-            description = "Highlight the outline of players on the Ignore list.",
-            section = highlightIgnoreSection
+            name = "Outline",
+            description = "Highlight outline for ignored players?",
+            section = ignoreSection
     )
     default boolean highlightIgnoreOutline()
     {
-        return true;
+        return false;
     }
 
     @ConfigItem(
             keyName = "highlightIgnoreHull",
-            name = "Highlight Hull",
-            description = "Highlight the hull (convex hull) of players on the Ignore list.",
-            section = highlightIgnoreSection
+            name = "Hull",
+            description = "Highlight hull for ignored players?",
+            section = ignoreSection
     )
     default boolean highlightIgnoreHull()
     {
@@ -400,43 +454,42 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "highlightIgnoreMinimap",
-            name = "Highlight Minimap",
-            description = "Highlight the minimap dot of players on the Ignore list.",
-            section = highlightIgnoreSection
+            name = "Minimap",
+            description = "Highlight minimap dot for ignored players?",
+            section = ignoreSection
     )
     default boolean highlightIgnoreMinimap()
     {
-        return true;
+        return false;
     }
 
     @ConfigItem(
             keyName = "ignoreMinimapAnimation",
             name = "Minimap Animation",
-            description = "Select the animation type for Ignore list players' minimap highlights.",
-            section = highlightIgnoreSection
+            description = "Animation for ignore minimap highlight",
+            section = ignoreSection
     )
     default MinimapAnimation ignoreMinimapAnimation()
     {
         return MinimapAnimation.Blink;
     }
 
-
-    // ------------------------------------------------------
-    // (6) Chat Channel
-    // ------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // 7) Chat Channel
+    // ------------------------------------------------------------------------
     @ConfigSection(
             name = "Highlight Chat Channel",
-            description = "Settings for highlighting clan/chat-channel members.",
+            description = "Highlight clan/chat channel members",
             position = 5,
             closedByDefault = true
     )
-    String highlightChatChannelSection = "highlightChatChannel";
+    String chatChannelSection = "chatChannelSection";
 
     @ConfigItem(
             keyName = "enableChatChannelHighlight",
             name = "Enable Chat Channel Highlight",
-            description = "Highlight players in the same clan/chat channel.",
-            section = highlightChatChannelSection
+            description = "Highlight players in your clan/chat channel?",
+            section = chatChannelSection
     )
     default boolean enableChatChannelHighlight()
     {
@@ -444,10 +497,32 @@ public interface PvPToolsConfig extends Config
     }
 
     @ConfigItem(
+            keyName = "chatChannelColor",
+            name = "Chat Channel Color",
+            description = "Color for chat channel highlight",
+            section = chatChannelSection
+    )
+    default Color chatChannelColor()
+    {
+        return Color.YELLOW;
+    }
+
+    @ConfigItem(
+            keyName = "chatChannelNameLocation",
+            name = "Name & Level",
+            description = "Where to draw name/level for chat channel players",
+            section = chatChannelSection
+    )
+    default PlayerNameLocation chatChannelNameLocation()
+    {
+        return PlayerNameLocation.DISABLED;
+    }
+
+    @ConfigItem(
             keyName = "highlightChatChannelTile",
-            name = "Highlight Tile",
-            description = "Highlight the tile of chat channel members.",
-            section = highlightChatChannelSection
+            name = "Tile",
+            description = "Tile highlight for chat channel players?",
+            section = chatChannelSection
     )
     default boolean highlightChatChannelTile()
     {
@@ -456,9 +531,9 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "highlightChatChannelOutline",
-            name = "Highlight Outline",
-            description = "Highlight the outline of chat channel members.",
-            section = highlightChatChannelSection
+            name = "Outline",
+            description = "Outline highlight for chat channel players?",
+            section = chatChannelSection
     )
     default boolean highlightChatChannelOutline()
     {
@@ -467,9 +542,9 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "highlightChatChannelHull",
-            name = "Highlight Hull",
-            description = "Highlight the hull of chat channel members.",
-            section = highlightChatChannelSection
+            name = "Hull",
+            description = "Hull highlight for chat channel players?",
+            section = chatChannelSection
     )
     default boolean highlightChatChannelHull()
     {
@@ -478,53 +553,29 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "highlightChatChannelMinimap",
-            name = "Highlight Minimap",
-            description = "Highlight the minimap dot of chat channel members.",
-            section = highlightChatChannelSection
+            name = "Minimap",
+            description = "Minimap highlight for chat channel players?",
+            section = chatChannelSection
     )
     default boolean highlightChatChannelMinimap()
     {
         return false;
     }
 
-    // Default color = Yellow
-    @ConfigItem(
-            keyName = "chatChannelColor",
-            name = "Chat Channel Color",
-            description = "Select the highlight color for chat channel members.",
-            section = highlightChatChannelSection
-    )
-    default Color chatChannelColor()
-    {
-        return Color.YELLOW;
-    }
-
     @ConfigItem(
             keyName = "chatChannelMinimapAnimation",
             name = "Minimap Animation",
-            description = "Animation for chat channel minimap highlight.",
-            section = highlightChatChannelSection
+            description = "Animation for chat channel minimap highlight",
+            section = chatChannelSection
     )
     default MinimapAnimation chatChannelMinimapAnimation()
     {
         return MinimapAnimation.Static;
     }
 
-    @ConfigItem(
-            keyName = "chatChannelNameLocation",
-            name = "Name and Level",
-            description = "Display name and combat level location for chat channel members.",
-            section = highlightChatChannelSection
-    )
-    default PlayerNameLocation chatChannelNameLocation()
-    {
-        return PlayerNameLocation.DISABLED;
-    }
-
-
-    // ------------------------------------------------------
-    // (7) Tag Player
-    // ------------------------------------------------------
+    // ------------------------------------------------------------------------
+    // 8) Tag Players
+    // ------------------------------------------------------------------------
     @ConfigSection(
             name = "Highlight Tag Players",
             description = "Settings for tagging specific players by name.",
@@ -536,7 +587,7 @@ public interface PvPToolsConfig extends Config
     @ConfigItem(
             keyName = "enableTagPlayerHighlight",
             name = "Enable Tag Player Highlight",
-            description = "Enable highlight for players manually tagged.",
+            description = "Enable highlight for players manually tagged in config.",
             section = highlightTagPlayersSection
     )
     default boolean enableTagPlayerHighlight()
@@ -547,7 +598,7 @@ public interface PvPToolsConfig extends Config
     @ConfigItem(
             keyName = "enableRightClickTagPlayer",
             name = "Right Click Tag Player",
-            description = "Adds a 'Tag' option when right-clicking a player.",
+            description = "Adds a 'Tag' option for players in the menu.",
             section = highlightTagPlayersSection
     )
     default boolean enableRightClickTagPlayer()
@@ -558,18 +609,17 @@ public interface PvPToolsConfig extends Config
     @ConfigItem(
             keyName = "taggedPlayersList",
             name = "Tagged Player List",
-            description = "Multi-line list of players to highlight (one per line).",
+            description = "Multi-line list of players (one per line) for tag highlight.",
             section = highlightTagPlayersSection
     )
     default String taggedPlayersList()
     {
-        // For testing, can default to empty or some sample
         return "";
     }
 
     @ConfigItem(
             keyName = "highlightTileTag",
-            name = "Highlight Tile (Tag)",
+            name = "Highlight Tile",
             description = "Highlight the tile of tagged players.",
             section = highlightTagPlayersSection
     )
@@ -580,7 +630,7 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "highlightOutlineTag",
-            name = "Highlight Outline (Tag)",
+            name = "Highlight Outline",
             description = "Highlight the outline of tagged players.",
             section = highlightTagPlayersSection
     )
@@ -591,7 +641,7 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "highlightHullTag",
-            name = "Highlight Hull (Tag)",
+            name = "Highlight Hull",
             description = "Highlight the hull of tagged players.",
             section = highlightTagPlayersSection
     )
@@ -602,8 +652,8 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "highlightMinimapTag",
-            name = "Minimap (Tag)",
-            description = "Highlight the minimap dot of tagged players.",
+            name = "Highlight Minimap",
+            description = "Highlight minimap dot for tagged players.",
             section = highlightTagPlayersSection
     )
     default boolean highlightMinimapTag()
@@ -611,22 +661,21 @@ public interface PvPToolsConfig extends Config
         return false;
     }
 
-    // Farge på tag-player highlight
     @ConfigItem(
             keyName = "tagHighlightColor",
             name = "Tag Highlight Color",
-            description = "Color for tagged players highlight.",
+            description = "Color used for tagged players highlight.",
             section = highlightTagPlayersSection
     )
     default Color tagHighlightColor()
     {
-        return Color.ORANGE; // <-- ORANGE
+        return Color.ORANGE;
     }
 
     @ConfigItem(
             keyName = "tagMinimapAnimation",
-            name = "Minimap Animation (Tag)",
-            description = "Animation type for tagged players' minimap highlight.",
+            name = "Minimap Animation",
+            description = "Animation for tagged players' minimap highlight",
             section = highlightTagPlayersSection
     )
     default MinimapAnimation tagMinimapAnimation()
@@ -636,8 +685,8 @@ public interface PvPToolsConfig extends Config
 
     @ConfigItem(
             keyName = "playerNameLocationTag",
-            name = "Name and Level (Tag)",
-            description = "Display name and combat level for tagged players.",
+            name = "Name and Level",
+            description = "Where to display name/level for tagged players.",
             section = highlightTagPlayersSection
     )
     default PlayerNameLocation playerNameLocationTag()
@@ -645,15 +694,16 @@ public interface PvPToolsConfig extends Config
         return PlayerNameLocation.DISABLED;
     }
 
-    // ------------------------------------------------------
-    // Enums
-    // ------------------------------------------------------
+    // ------------------------------------------------------------------------
+    //  ENUMS
+    // ------------------------------------------------------------------------
     enum MinimapAnimation
     {
         Static,
         Pulse,
         Blink,
-        Sonar
+        Sonar,
+        Wave
     }
 
     enum PlayerNameLocation

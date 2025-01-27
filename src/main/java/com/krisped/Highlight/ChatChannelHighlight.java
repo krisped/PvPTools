@@ -1,9 +1,10 @@
 package com.krisped.Highlight;
 
 import com.krisped.PvPToolsConfig;
-import net.runelite.api.*;
-import net.runelite.api.clan.ClanChannel;
-import net.runelite.api.clan.ClanChannelMember;
+import net.runelite.api.Client;
+import net.runelite.api.FriendsChatManager;
+import net.runelite.api.FriendsChatMember;
+import net.runelite.api.Player;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
 import java.awt.*;
@@ -11,8 +12,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Highlighter spillere som er i samme "chat channel" (clan) som deg,
- * forutsatt at "enableChatChannelHighlight" er true.
+ * Highlighter spillere i "Friends Chat" (2 gule smileys),
+ * ofte kalt "Chat-channel" i OSRS.
+ *
+ * Bruker FriendsChatManager i eldre RuneLite, i stedet for FriendsChat.
  */
 public class ChatChannelHighlight extends BaseHighlight
 {
@@ -27,28 +30,38 @@ public class ChatChannelHighlight extends BaseHighlight
     @Override
     public void render(Graphics2D graphics)
     {
+        // Sjekk config: er chat channel highlight aktivert?
         if (!config.enableChatChannelHighlight())
         {
             return;
         }
 
+        // Må ha en local player
         Player local = client.getLocalPlayer();
-        if (local == null) return;
-
-        // Hent medlemmene i clan channel
-        Set<String> clanMemberNames = getClanMemberNames();
-        if (clanMemberNames.isEmpty())
+        if (local == null)
         {
             return;
         }
 
-        // Loop over players og highlight de som er i clanMemberNames
+        // Hent navneliste fra "FriendsChat"
+        Set<String> fcMembers = getFriendsChatMembers();
+        if (fcMembers.isEmpty())
+        {
+            return;
+        }
+
+        // Loop over players i spillet
         for (Player p : client.getPlayers())
         {
-            if (p == null || p == local) continue;
-
-            if (clanMemberNames.contains(cleanName(p.getName())))
+            if (p == null || p == local)
             {
+                continue;
+            }
+
+            String nameLc = cleanName(p.getName());
+            if (fcMembers.contains(nameLc))
+            {
+                // Kall fellesmetoden i BaseHighlight
                 renderPlayerHighlight(
                         graphics,
                         p,
@@ -65,31 +78,44 @@ public class ChatChannelHighlight extends BaseHighlight
     }
 
     /**
-     * Eksempel-metode for å hente medlemmene i "main clan channel".
-     * Juster hvis du har flere (f.eks. ClanID.CLAN, ClanID.GROUP_IRONMAN, etc.).
+     * Henter alle medlemmer i "Friends Chat" (2 gule smileys)
+     * via FriendsChatManager (eldre RL-versjon).
+     *
+     * Returnerer et Set<String> i lowercase.
      */
-    private Set<String> getClanMemberNames()
+    private Set<String> getFriendsChatMembers()
     {
         Set<String> names = new HashSet<>();
 
-        ClanChannel clanChannel = client.getClanChannel();
-        if (clanChannel == null)
+        // Hent manager
+        FriendsChatManager manager = client.getFriendsChatManager();
+        if (manager == null)
         {
             return names;
         }
 
-        for (ClanChannelMember member : clanChannel.getMembers())
+        // manager.getMembers() gir en liste av FriendsChatMember
+        for (FriendsChatMember mem : manager.getMembers())
         {
-            String nm = cleanName(member.getName());
-            names.add(nm);
+            if (mem == null) continue;
+            String c = cleanName(mem.getName());
+            if (!c.isEmpty())
+            {
+                names.add(c);
+            }
         }
-
         return names;
     }
 
-    private String cleanName(String n)
+    /**
+     * Fjerner fargekoder, NBSP og senker til lowerCase()
+     */
+    private String cleanName(String raw)
     {
-        if (n == null) return "";
-        return n.replace('\u00A0', ' ').toLowerCase().trim(); // fjerner ev. tags og gjør lowerCase
+        if (raw == null) return "";
+        return raw.replaceAll("<.*?>","")
+                .replace('\u00A0',' ')
+                .toLowerCase()
+                .trim();
     }
 }

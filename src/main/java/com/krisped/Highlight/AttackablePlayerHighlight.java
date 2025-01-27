@@ -1,9 +1,7 @@
 package com.krisped.Highlight;
 
 import com.krisped.PvPToolsConfig;
-import net.runelite.api.Client;
-import net.runelite.api.Player;
-import net.runelite.api.WorldType;
+import net.runelite.api.*;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
 import java.awt.*;
@@ -11,6 +9,7 @@ import java.util.EnumSet;
 
 public class AttackablePlayerHighlight extends BaseHighlight
 {
+    // Varbits for wilderness
     private static final int IN_WILDERNESS    = 5963;
     private static final int WILDERNESS_LEVEL = 5964;
 
@@ -25,18 +24,14 @@ public class AttackablePlayerHighlight extends BaseHighlight
     @Override
     public void render(Graphics2D graphics)
     {
-        if (!config.enableAttackablePlayers())
-        {
-            return;
-        }
+        if (!config.enableAttackablePlayers()) return;
 
-        var local = client.getLocalPlayer();
+        Player local = client.getLocalPlayer();
         if (local == null) return;
 
         for (Player p : client.getPlayers())
         {
             if (p == null || p == local) continue;
-
             if (isAttackable(local, p))
             {
                 renderPlayerHighlight(
@@ -54,29 +49,29 @@ public class AttackablePlayerHighlight extends BaseHighlight
         }
     }
 
-    private boolean isAttackable(Player localPlayer, Player otherPlayer)
+    private boolean isAttackable(Player local, Player other)
     {
-        int localCombat = localPlayer.getCombatLevel();
-        int otherCombat = otherPlayer.getCombatLevel();
+        int localCombat = local.getCombatLevel();
+        int otherCombat = other.getCombatLevel();
 
-        // Wilderness
+        // wilderness
         if (client.getVarbitValue(IN_WILDERNESS) == 1)
         {
-            int wildernessLevel = client.getVarbitValue(WILDERNESS_LEVEL);
-            return Math.abs(localCombat - otherCombat) <= wildernessLevel;
+            int wLvl = client.getVarbitValue(WILDERNESS_LEVEL);
+            return Math.abs(localCombat - otherCombat) <= wLvl;
         }
-        // PVP/HIGH_RISK
+        // pvp world
         else if (isPvpWorld())
         {
-            int wildernessLevel = client.getVarbitValue(WILDERNESS_LEVEL);
-            return Math.abs(localCombat - otherCombat) <= (15 + wildernessLevel);
+            int wLvl = client.getVarbitValue(WILDERNESS_LEVEL);
+            return Math.abs(localCombat - otherCombat) <= (15 + wLvl);
         }
         return false;
     }
 
     private boolean isPvpWorld()
     {
-        EnumSet<WorldType> wt = client.getWorldType();
-        return wt.contains(WorldType.PVP) || wt.contains(WorldType.HIGH_RISK);
+        EnumSet<WorldType> types = client.getWorldType();
+        return types.contains(WorldType.PVP) || types.contains(WorldType.HIGH_RISK);
     }
 }

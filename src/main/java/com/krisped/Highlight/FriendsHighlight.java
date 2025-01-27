@@ -22,14 +22,14 @@ public class FriendsHighlight extends BaseHighlight
     {
         if (!config.enableFriendsHighlight()) return;
 
-        var local = client.getLocalPlayer();
+        Player local = client.getLocalPlayer();
         if (local == null) return;
 
         for (Player p : client.getPlayers())
         {
             if (p == null || p == local) continue;
 
-            // isFriended(name, strict?)
+            // er p en friend?
             if (client.isFriended(p.getName(), false))
             {
                 renderPlayerHighlight(

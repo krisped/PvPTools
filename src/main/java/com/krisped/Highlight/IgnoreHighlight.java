@@ -26,10 +26,9 @@ public class IgnoreHighlight extends BaseHighlight
         for (Player p : client.getPlayers())
         {
             if (p == null) continue;
-
             if (isIgnored(p.getName()))
             {
-                // Eksempel: viser navn over hodet for ignore
+                // f.eks. ALWAYS show name above head
                 renderPlayerHighlight(
                         graphics,
                         p,
@@ -45,13 +44,10 @@ public class IgnoreHighlight extends BaseHighlight
         }
     }
 
-    private boolean isIgnored(String playerName)
+    private boolean isIgnored(String name)
     {
-        if (playerName == null || client.getIgnoreContainer() == null)
-        {
-            return false;
-        }
-        Ignore i = client.getIgnoreContainer().findByName(playerName);
+        if (name == null || client.getIgnoreContainer() == null) return false;
+        Ignore i = client.getIgnoreContainer().findByName(name);
         return (i != null);
     }
 }

@@ -1,9 +1,6 @@
 package com.krisped.PlayerLookupPanel;
 
-import net.runelite.api.Client;
-import net.runelite.api.ItemComposition;
-import net.runelite.api.Player;
-import net.runelite.api.PlayerComposition;
+import net.runelite.api.*;
 import net.runelite.api.kit.KitType;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
@@ -22,8 +19,8 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class PlayerLookup extends JPanel {
-
+public class PlayerLookup extends JPanel
+{
     private final Client client;
     private final ClientThread clientThread;
     private final HiscoreClient hiscoreClient;
@@ -34,10 +31,15 @@ public class PlayerLookup extends JPanel {
     private final JPanel hiscorePanel;
     private final JPanel equipmentPanel;
 
-    private Runnable onBackButtonPressed;  // Store the action for the back button
+    private Runnable onBackButtonPressed;
     private String currentTargetName = null;
 
-    public PlayerLookup(Client client, ClientThread clientThread, HiscoreClient hiscoreClient, ItemManager itemManager, SpriteManager spriteManager) {
+    public PlayerLookup(Client client,
+                        ClientThread clientThread,
+                        HiscoreClient hiscoreClient,
+                        ItemManager itemManager,
+                        SpriteManager spriteManager)
+    {
         this.client = client;
         this.clientThread = clientThread;
         this.hiscoreClient = hiscoreClient;
@@ -56,106 +58,113 @@ public class PlayerLookup extends JPanel {
         JPanel titlePanel = new JPanel(new BorderLayout());
         titlePanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
         titlePanel.add(titleLabel, BorderLayout.NORTH);
-        titlePanel.add(Box.createVerticalStrut(30), BorderLayout.SOUTH); // Space between title and player name
+        titlePanel.add(Box.createVerticalStrut(30), BorderLayout.SOUTH);
 
         add(titlePanel, BorderLayout.NORTH);
 
-        // Player Name Panel
-        JPanel playerNamePanel = new JPanel(new BorderLayout());
-        playerNamePanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-        playerNamePanel.setBorder(BorderFactory.createTitledBorder("Player Name"));
+        // PlayerName panel
+        JPanel namePanel = new JPanel(new BorderLayout());
+        namePanel.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        namePanel.setBorder(BorderFactory.createTitledBorder("Player Name"));
 
         playerNameLabel = new JLabel("No target selected", SwingConstants.CENTER);
         playerNameLabel.setFont(new Font("Arial", Font.BOLD, 16));
         playerNameLabel.setForeground(Color.RED);
-        playerNamePanel.add(playerNameLabel, BorderLayout.CENTER);
+        namePanel.add(playerNameLabel, BorderLayout.CENTER);
 
-        JButton clearTargetButton = new JButton("Clear Target");
-        clearTargetButton.setForeground(Color.WHITE);
-        clearTargetButton.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-        clearTargetButton.addActionListener(e -> clearTarget());
-        playerNamePanel.add(clearTargetButton, BorderLayout.SOUTH);
+        JButton clearButton = new JButton("Clear Target");
+        clearButton.setForeground(Color.WHITE);
+        clearButton.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+        clearButton.addActionListener(e -> clearTarget());
+        namePanel.add(clearButton, BorderLayout.SOUTH);
 
-        // Hiscore Panel
+        // Hiscore
         hiscorePanel = new JPanel();
         hiscorePanel.setLayout(new BoxLayout(hiscorePanel, BoxLayout.Y_AXIS));
         hiscorePanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
         hiscorePanel.setBorder(BorderFactory.createTitledBorder("Hiscores"));
+        JScrollPane hiscoreScroll = new JScrollPane(hiscorePanel);
+        hiscoreScroll.setPreferredSize(new Dimension(300, 180));
+        hiscoreScroll.setBorder(null);
 
-        JScrollPane hiscoreScrollPane = new JScrollPane(hiscorePanel);
-        hiscoreScrollPane.setPreferredSize(new Dimension(300, 180));
-        hiscoreScrollPane.setBorder(null);
-
-        // Equipment Panel
+        // Equipment
         equipmentPanel = new JPanel();
         equipmentPanel.setLayout(new BoxLayout(equipmentPanel, BoxLayout.Y_AXIS));
         equipmentPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
         equipmentPanel.setBorder(BorderFactory.createTitledBorder("Equipment"));
+        JScrollPane equipScroll = new JScrollPane(equipmentPanel);
+        equipScroll.setPreferredSize(new Dimension(300, 600)); // Forstørret
+        equipScroll.setBorder(null);
 
-        JScrollPane equipmentScrollPane = new JScrollPane(equipmentPanel);
-        equipmentScrollPane.setPreferredSize(new Dimension(300, 450));
-        equipmentScrollPane.setBorder(null);
-
-        // Back Button
+        // Back
         JButton backButton = new JButton("Back to Main Menu");
         backButton.setForeground(Color.WHITE);
         backButton.setBackground(ColorScheme.DARKER_GRAY_COLOR);
         backButton.setAlignmentX(CENTER_ALIGNMENT);
         backButton.addActionListener(e -> {
-            if (onBackButtonPressed != null) {
-                onBackButtonPressed.run(); // Execute the back button action if set
+            if (onBackButtonPressed != null)
+            {
+                onBackButtonPressed.run();
             }
         });
 
-        // Content Panel
+        // Content
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
-        contentPanel.add(hiscoreScrollPane);
-        contentPanel.add(Box.createVerticalStrut(10));
-        contentPanel.add(equipmentScrollPane);
-        contentPanel.add(Box.createVerticalStrut(10));
-        contentPanel.add(backButton); // Adds back button
 
-        add(playerNamePanel, BorderLayout.CENTER);
+        contentPanel.add(hiscoreScroll);
+        contentPanel.add(Box.createVerticalStrut(10));
+        contentPanel.add(equipScroll);
+        contentPanel.add(Box.createVerticalStrut(10));
+        contentPanel.add(backButton);
+
+        add(namePanel, BorderLayout.CENTER);
         add(contentPanel, BorderLayout.SOUTH);
 
         monitorInteraction();
     }
 
-    // Set action for the back button
-    public void setOnBackButtonPressed(Runnable onBackButtonPressed) {
-        this.onBackButtonPressed = onBackButtonPressed;  // Save the action for the back button
+    public void setOnBackButtonPressed(Runnable onBackButtonPressed)
+    {
+        this.onBackButtonPressed = onBackButtonPressed;
     }
 
-    private void monitorInteraction() {
+    private void monitorInteraction()
+    {
         new Thread(() -> {
-            while (true) {
-                try {
+            while (true)
+            {
+                try
+                {
                     updateTarget();
                     Thread.sleep(2000);
-                } catch (InterruptedException e) {
+                }
+                catch (InterruptedException ex)
+                {
                     Thread.currentThread().interrupt();
                 }
             }
         }).start();
     }
 
-    private void updateTarget() {
-        Player localPlayer = client.getLocalPlayer();
-        if (localPlayer == null) {
-            return;
-        }
+    private void updateTarget()
+    {
+        Player local = client.getLocalPlayer();
+        if (local == null) return;
 
-        if (localPlayer.getInteracting() instanceof Player) {
-            Player target = (Player) localPlayer.getInteracting();
-            if (target != null && target.getName() != null) {
-                if (!target.getName().equals(currentTargetName)) {
+        if (local.getInteracting() instanceof Player)
+        {
+            Player target = (Player) local.getInteracting();
+            if (target != null && target.getName() != null)
+            {
+                if (!target.getName().equals(currentTargetName))
+                {
                     currentTargetName = target.getName();
                     SwingUtilities.invokeLater(() -> {
-                        playerNameLabel.setText(target.getName());
+                        playerNameLabel.setText(currentTargetName);
                         playerNameLabel.setForeground(Color.GREEN);
-                        fetchAndDisplayHiscores(target.getName());
+                        fetchAndDisplayHiscores(currentTargetName);
                         fetchAndDisplayEquipment(target);
                     });
                 }
@@ -163,7 +172,8 @@ public class PlayerLookup extends JPanel {
         }
     }
 
-    private void clearTarget() {
+    private void clearTarget()
+    {
         currentTargetName = null;
         playerNameLabel.setText("No target selected");
         playerNameLabel.setForeground(Color.RED);
@@ -175,89 +185,124 @@ public class PlayerLookup extends JPanel {
         equipmentPanel.repaint();
     }
 
-    private void fetchAndDisplayHiscores(String playerName) {
+    private void fetchAndDisplayHiscores(String playerName)
+    {
         hiscorePanel.removeAll();
-        try {
-            HiscoreResult hiscoreResult = hiscoreClient.lookup(playerName);
-            if (hiscoreResult != null) {
-                Arrays.asList(HiscoreSkill.ATTACK, HiscoreSkill.STRENGTH, HiscoreSkill.DEFENCE,
-                                HiscoreSkill.HITPOINTS, HiscoreSkill.RANGED, HiscoreSkill.MAGIC, HiscoreSkill.PRAYER)
-                        .forEach(skill -> addStatToPanel(skill, hiscoreResult.getSkill(skill).getLevel()));
-            } else {
-                JLabel errorLabel = new JLabel("No hiscore data available for " + playerName);
-                errorLabel.setForeground(Color.RED);
-                hiscorePanel.add(errorLabel);
+        try
+        {
+            HiscoreResult result = hiscoreClient.lookup(playerName);
+            if (result != null)
+            {
+                Arrays.asList(
+                        HiscoreSkill.ATTACK,
+                        HiscoreSkill.STRENGTH,
+                        HiscoreSkill.DEFENCE,
+                        HiscoreSkill.HITPOINTS,
+                        HiscoreSkill.RANGED,
+                        HiscoreSkill.MAGIC,
+                        HiscoreSkill.PRAYER
+                ).forEach(skill -> {
+                    int lvl = result.getSkill(skill).getLevel();
+                    addStatToPanel(skill, lvl);
+                });
             }
-        } catch (Exception e) {
-            JLabel errorLabel = new JLabel("Error fetching hiscore data for " + playerName);
-            errorLabel.setForeground(Color.RED);
-            hiscorePanel.add(errorLabel);
+            else
+            {
+                JLabel err = new JLabel("No hiscore data for " + playerName);
+                err.setForeground(Color.RED);
+                hiscorePanel.add(err);
+            }
         }
-
+        catch (Exception ex)
+        {
+            JLabel err = new JLabel("Error fetching hiscore data for " + playerName);
+            err.setForeground(Color.RED);
+            hiscorePanel.add(err);
+        }
         hiscorePanel.revalidate();
         hiscorePanel.repaint();
     }
 
-    private void addStatToPanel(HiscoreSkill skill, int level) {
-        JPanel statPanel = new JPanel(new BorderLayout(2, 0));
+    private void addStatToPanel(HiscoreSkill skill, int level)
+    {
+        JPanel statPanel = new JPanel(new BorderLayout(2,0));
         statPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
         JLabel iconLabel = new JLabel();
         spriteManager.getSpriteAsync(skillToSpriteId(skill), 0, sprite -> {
-            if (sprite != null) {
+            if (sprite != null)
+            {
                 iconLabel.setIcon(new ImageIcon(sprite));
             }
         });
         statPanel.add(iconLabel, BorderLayout.WEST);
 
-        JLabel textLabel = new JLabel(skill.getName() + ": " + level);
-        textLabel.setForeground(Color.WHITE);
-        textLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        statPanel.add(textLabel, BorderLayout.CENTER);
+        JLabel txt = new JLabel(skill.getName() + ": " + level);
+        txt.setForeground(Color.WHITE);
+        txt.setFont(new Font("Arial", Font.PLAIN, 12));
+        statPanel.add(txt, BorderLayout.CENTER);
 
         hiscorePanel.add(statPanel);
     }
 
-    private void fetchAndDisplayEquipment(Player target) {
+    private int skillToSpriteId(HiscoreSkill skill)
+    {
+        switch (skill)
+        {
+            case ATTACK: return 197;
+            case STRENGTH: return 198;
+            case DEFENCE: return 199;
+            case HITPOINTS: return 200;
+            case RANGED: return 201;
+            case MAGIC: return 202;
+            case PRAYER: return 203;
+            default: throw new IllegalArgumentException("Unsupported skill: "+skill);
+        }
+    }
+
+    private void fetchAndDisplayEquipment(Player target)
+    {
         equipmentPanel.removeAll();
 
         clientThread.invoke(() -> {
-            PlayerComposition composition = target.getPlayerComposition();
-            if (composition == null) {
-                JLabel noEquipmentLabel = new JLabel("No equipment available.");
-                noEquipmentLabel.setForeground(Color.RED);
-                equipmentPanel.add(noEquipmentLabel);
-            } else {
+            PlayerComposition comp = target.getPlayerComposition();
+            if (comp == null)
+            {
+                JLabel noEquip = new JLabel("No equipment available.");
+                noEquip.setForeground(Color.RED);
+                equipmentPanel.add(noEquip);
+            }
+            else
+            {
                 AtomicLong totalValue = new AtomicLong(0);
-
-                for (KitType kitType : KitType.values()) {
-                    int itemId = composition.getEquipmentId(kitType);
-                    if (itemId > 0) {
-                        ItemComposition item = itemManager.getItemComposition(itemId);
+                for (KitType kt : KitType.values())
+                {
+                    int itemId = comp.getEquipmentId(kt);
+                    if (itemId > 0)
+                    {
+                        var itemComp = itemManager.getItemComposition(itemId);
                         int price = itemManager.getItemPrice(itemId);
-
                         totalValue.addAndGet(price);
-                        addEquipmentItem(item, kitType, price);
+                        addEquipmentItem(itemComp, kt, price);
                     }
                 }
-
                 addTotalValues(totalValue.get());
             }
-
             equipmentPanel.revalidate();
             equipmentPanel.repaint();
         });
     }
 
-    private void addEquipmentItem(ItemComposition item, KitType kitType, int price) {
-        JPanel itemPanel = new JPanel(new BorderLayout(5, 0));
-        itemPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
+    private void addEquipmentItem(net.runelite.api.ItemComposition item, KitType kitType, int price)
+    {
+        JPanel row = new JPanel(new BorderLayout(5,0));
+        row.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
-        JLabel itemImageLabel = new JLabel();
-        AsyncBufferedImage itemImage = itemManager.getImage(item.getId());
-        itemImage.addTo(itemImageLabel);
+        JLabel iconLbl = new JLabel();
+        net.runelite.client.util.AsyncBufferedImage img = itemManager.getImage(item.getId());
+        img.addTo(iconLbl);
 
-        JPanel textPanel = new JPanel(new GridLayout(3, 1));
+        JPanel textPanel = new JPanel(new GridLayout(3,1));
         textPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
         JLabel itemNameLabel = new JLabel(item.getName());
@@ -267,61 +312,43 @@ public class PlayerLookup extends JPanel {
         itemTypeLabel.setForeground(Color.LIGHT_GRAY);
         itemTypeLabel.setFont(FontManager.getRunescapeSmallFont());
 
-        JLabel itemPriceLabel = new JLabel(QuantityFormatter.quantityToStackSize(price));
-        itemPriceLabel.setForeground(price >= 10_000_000 ? Color.GREEN : Color.YELLOW);
+        JLabel priceLabel = new JLabel(QuantityFormatter.quantityToStackSize(price));
+        priceLabel.setForeground(price >= 10_000_000 ? Color.GREEN : Color.YELLOW);
 
         textPanel.add(itemNameLabel);
         textPanel.add(itemTypeLabel);
-        textPanel.add(itemPriceLabel);
+        textPanel.add(priceLabel);
 
-        itemPanel.add(itemImageLabel, BorderLayout.WEST);
-        itemPanel.add(textPanel, BorderLayout.CENTER);
+        row.add(iconLbl, BorderLayout.WEST);
+        row.add(textPanel, BorderLayout.CENTER);
 
-        equipmentPanel.add(itemPanel);
+        equipmentPanel.add(row);
     }
 
-    private void addTotalValues(long totalValue) {
-        JPanel totalPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        totalPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
+    private void addTotalValues(long totalValue)
+    {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panel.setBackground(ColorScheme.DARK_GRAY_COLOR);
 
         JLabel coinIcon = new JLabel();
         spriteManager.getSpriteAsync(1046, 0, sprite -> {
-            if (sprite != null) {
+            if (sprite != null)
+            {
                 coinIcon.setIcon(new ImageIcon(sprite));
             }
         });
 
-        JLabel totalLabel = new JLabel("Total: " + QuantityFormatter.quantityToStackSize(totalValue));
-        totalLabel.setForeground(Color.GREEN);
-        totalLabel.setFont(FontManager.getRunescapeFont());
+        JLabel totalLbl = new JLabel("Total: " + QuantityFormatter.quantityToStackSize(totalValue));
+        totalLbl.setForeground(Color.GREEN);
+        totalLbl.setFont(FontManager.getRunescapeFont());
 
-        totalPanel.add(coinIcon);
-        totalPanel.add(totalLabel);
-        equipmentPanel.add(totalPanel);
+        panel.add(coinIcon);
+        panel.add(totalLbl);
+        equipmentPanel.add(panel);
     }
 
-    private int skillToSpriteId(HiscoreSkill skill) {
-        switch (skill) {
-            case ATTACK:
-                return 197;
-            case STRENGTH:
-                return 198;
-            case DEFENCE:
-                return 199;
-            case HITPOINTS:
-                return 200;
-            case RANGED:
-                return 201;
-            case MAGIC:
-                return 202;
-            case PRAYER:
-                return 203;
-            default:
-                throw new IllegalArgumentException("Unsupported skill: " + skill);
-        }
-    }
-
-    private String capitalize(String input) {
-        return input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
+    private String capitalize(String s)
+    {
+        return s.substring(0,1).toUpperCase() + s.substring(1).toLowerCase();
     }
 }
