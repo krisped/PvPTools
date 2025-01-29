@@ -130,8 +130,8 @@ public class PvPToolsPlugin extends Plugin
             }
         };
         highlightOverlay.setPosition(OverlayPosition.DYNAMIC);
-        highlightOverlay.setLayer(OverlayLayer.ABOVE_WIDGETS);
-        highlightOverlay.setPriority(OverlayPriority.HIGH);
+        highlightOverlay.setLayer(OverlayLayer.UNDER_WIDGETS);
+        highlightOverlay.setPriority(OverlayPriority.LOW);
 
         updateOverlayState();
 
