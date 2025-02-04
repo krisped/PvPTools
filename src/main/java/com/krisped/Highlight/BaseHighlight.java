@@ -1,9 +1,11 @@
 package com.krisped.Highlight;
 
 import com.krisped.PvPToolsConfig;
-import net.runelite.api.*;
+import net.runelite.api.Client;
+import net.runelite.api.Player;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
+import net.runelite.api.Perspective;
 
 import java.awt.*;
 
@@ -25,52 +27,27 @@ public abstract class BaseHighlight
         this.settingsHighlight = settingsHighlight;
     }
 
-    public abstract void render(Graphics2D graphics);
+    /**
+     * Metode for å tegne 'vanlige' highlights (tile, outline, hull, navn).
+     * Kalles fra overlay som ligger UNDER widgets.
+     */
+    public abstract void renderNormal(Graphics2D g);
 
     /**
-     * Fellesmetode som tegner tile, outline, hull, minimap og ev. navn.
+     * Metode for å tegne minimap highlights (f.eks. blinkende sirkel).
+     * Kalles fra overlay som ligger OVER widgets.
      */
-    protected void renderPlayerHighlight(Graphics2D g,
-                                         Player player,
-                                         boolean highlightTile,
-                                         boolean highlightOutline,
-                                         boolean highlightHull,
-                                         boolean highlightMinimap,
-                                         Color color,
-                                         PvPToolsConfig.MinimapAnimation minimapAnim,
-                                         PvPToolsConfig.PlayerNameLocation nameLoc)
-    {
-        if (player == null) return;
-
-        if (highlightTile)
-        {
-            renderTile(g, player, color);
-        }
-        if (highlightOutline)
-        {
-            renderOutline(player, color);
-        }
-        if (highlightHull)
-        {
-            renderHull(g, player, color);
-        }
-        if (highlightMinimap)
-        {
-            renderMinimapDot(g, player, color, minimapAnim);
-        }
-        if (nameLoc != PvPToolsConfig.PlayerNameLocation.DISABLED)
-        {
-            renderNameAndLevel(g, player, nameLoc, color);
-        }
-    }
+    public abstract void renderMinimap(Graphics2D g);
 
     // ----------------------------------------------------
-    // 1) Tile
+    // Felles hjelpefunksjoner
     // ----------------------------------------------------
-    private void renderTile(Graphics2D g, Player p, Color color)
+
+    protected void drawTile(Graphics2D g, Player p, Color color)
     {
         LocalPoint lp = p.getLocalLocation();
         if (lp == null) return;
+
         Polygon poly = Perspective.getCanvasTilePoly(client, lp);
         if (poly == null) return;
 
@@ -81,10 +58,7 @@ public abstract class BaseHighlight
         g.setStroke(old);
     }
 
-    // ----------------------------------------------------
-    // 2) Outline
-    // ----------------------------------------------------
-    private void renderOutline(Player p, Color color)
+    protected void drawOutline(Player p, Color color)
     {
         if (p.getModel() == null) return;
         modelOutlineRenderer.drawOutline(
@@ -95,19 +69,16 @@ public abstract class BaseHighlight
         );
     }
 
-    // ----------------------------------------------------
-    // 3) Hull
-    // ----------------------------------------------------
-    private void renderHull(Graphics2D g, Player p, Color color)
+    protected void drawHull(Graphics2D g, Player p, Color color)
     {
         Shape hull = p.getConvexHull();
         if (hull == null) return;
 
-        // Fyll
+        // fyll
         g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 40));
         g.fill(hull);
 
-        // Kant
+        // kant
         Stroke old = g.getStroke();
         g.setStroke(new BasicStroke(settingsHighlight.getHullThickness()));
         g.setColor(color);
@@ -115,10 +86,44 @@ public abstract class BaseHighlight
         g.setStroke(old);
     }
 
+    protected void drawName(Graphics2D g, Player p, String text, Color color, PvPToolsConfig.PlayerNameLocation loc)
+    {
+        net.runelite.api.Point txtPt = null;
+
+        switch (loc)
+        {
+            case ABOVE_HEAD:
+                txtPt = p.getCanvasTextLocation(g, text, p.getLogicalHeight() + 20);
+                break;
+            case CENTER_OF_MODEL:
+                txtPt = p.getCanvasTextLocation(g, text, p.getLogicalHeight() / 2);
+                break;
+            case RIGHT_OF_MODEL:
+                txtPt = p.getCanvasTextLocation(g, text, p.getLogicalHeight());
+                if (txtPt != null)
+                {
+                    txtPt = new net.runelite.api.Point(txtPt.getX() + 10, txtPt.getY() - 5);
+                }
+                break;
+            default:
+                return;
+        }
+
+        if (txtPt != null)
+        {
+            g.setFont(new Font("Arial", Font.PLAIN, 11));
+            g.setColor(new Color(0, 0, 0, 130));
+            g.drawString(text, txtPt.getX() + 1, txtPt.getY() + 1);
+
+            g.setColor(color);
+            g.drawString(text, txtPt.getX(), txtPt.getY());
+        }
+    }
+
     // ----------------------------------------------------
-    // 4) Minimap
+    // Minimap (tegnes i eget overlay)
     // ----------------------------------------------------
-    private void renderMinimapDot(Graphics2D g,
+    protected void drawMinimapDot(Graphics2D g,
                                   Player p,
                                   Color color,
                                   PvPToolsConfig.MinimapAnimation anim)
@@ -157,16 +162,16 @@ public abstract class BaseHighlight
             case Sonar:
             {
                 long factor = (System.currentTimeMillis() % (2*speed)) / (speed/4);
-                int size = baseSize + (int)factor*2;
+                int size = baseSize + (int)factor * 2;
                 drawCircle(g, x, y, size, color);
                 break;
             }
             case Wave:
             {
                 double t = (System.currentTimeMillis() % speed) / (double)speed;
-                double wave = Math.sin(t*2*Math.PI);
-                int radius = (int)(baseSize + wave*baseSize);
-                if (radius<2) radius=2;
+                double wave = Math.sin(t * 2 * Math.PI);
+                int radius = (int)(baseSize + wave * baseSize);
+                if (radius < 2) radius = 2;
                 fillCircle(g, x, y, radius, color);
                 break;
             }
@@ -183,46 +188,5 @@ public abstract class BaseHighlight
     {
         g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 120));
         g.drawOval(cx - size/2, cy - size/2, size, size);
-    }
-
-    // ----------------------------------------------------
-    // 5) Navn + Level
-    // ----------------------------------------------------
-    private void renderNameAndLevel(Graphics2D g,
-                                    Player p,
-                                    PvPToolsConfig.PlayerNameLocation loc,
-                                    Color color)
-    {
-        String text = p.getName() + " (" + p.getCombatLevel() + ")";
-        net.runelite.api.Point txtPt = null;
-
-        switch (loc)
-        {
-            case ABOVE_HEAD:
-                txtPt = p.getCanvasTextLocation(g, text, p.getLogicalHeight()+20);
-                break;
-            case CENTER_OF_MODEL:
-                txtPt = p.getCanvasTextLocation(g, text, p.getLogicalHeight()/2);
-                break;
-            case RIGHT_OF_MODEL:
-                txtPt = p.getCanvasTextLocation(g, text, p.getLogicalHeight());
-                if (txtPt!=null)
-                {
-                    txtPt = new net.runelite.api.Point(txtPt.getX()+10, txtPt.getY()-5);
-                }
-                break;
-            default:
-                return;
-        }
-
-        if (txtPt!=null)
-        {
-            g.setFont(new Font("Arial", Font.PLAIN, 11));
-            g.setColor(new Color(0,0,0,130));
-            g.drawString(text, txtPt.getX()+1, txtPt.getY()+1);
-
-            g.setColor(color);
-            g.drawString(text, txtPt.getX(), txtPt.getY());
-        }
     }
 }

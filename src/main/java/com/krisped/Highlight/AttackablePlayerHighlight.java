@@ -9,7 +9,6 @@ import java.util.EnumSet;
 
 public class AttackablePlayerHighlight extends BaseHighlight
 {
-    // Varbits for wilderness
     private static final int IN_WILDERNESS    = 5963;
     private static final int WILDERNESS_LEVEL = 5964;
 
@@ -22,29 +21,79 @@ public class AttackablePlayerHighlight extends BaseHighlight
     }
 
     @Override
-    public void render(Graphics2D graphics)
+    public void renderNormal(Graphics2D g)
     {
-        if (!config.enableAttackablePlayers()) return;
+        if (!config.enableAttackablePlayers())
+        {
+            return;
+        }
 
         Player local = client.getLocalPlayer();
-        if (local == null) return;
+        if (local == null)
+        {
+            return;
+        }
 
         for (Player p : client.getPlayers())
         {
-            if (p == null || p == local) continue;
+            if (p == null || p == local)
+            {
+                continue;
+            }
             if (isAttackable(local, p))
             {
-                renderPlayerHighlight(
-                        graphics,
-                        p,
-                        config.highlightTileAttackable(),
-                        config.highlightOutlineAttackable(),
-                        config.highlightHullAttackable(),
-                        config.highlightMinimapAttackable(),
-                        config.highlightColorAttackable(),
-                        config.minimapAnimationAttackable(),
-                        config.playerNameLocationAttackable()
-                );
+                // Tegn tile, outline, hull og evt. navn
+                // (men ikke minimap - det tar vi i renderMinimap).
+                Color c = config.highlightColorAttackable();
+                boolean showName = (config.playerNameLocationAttackable() != PvPToolsConfig.PlayerNameLocation.DISABLED);
+
+                if (config.highlightTileAttackable())
+                {
+                    drawTile(g, p, c);
+                }
+                if (config.highlightOutlineAttackable())
+                {
+                    drawOutline(p, c);
+                }
+                if (config.highlightHullAttackable())
+                {
+                    drawHull(g, p, c);
+                }
+                if (showName)
+                {
+                    String txt = p.getName() + " (" + p.getCombatLevel() + ")";
+                    drawName(g, p, txt, c, config.playerNameLocationAttackable());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void renderMinimap(Graphics2D g)
+    {
+        if (!config.enableAttackablePlayers())
+        {
+            return;
+        }
+
+        Player local = client.getLocalPlayer();
+        if (local == null)
+        {
+            return;
+        }
+
+        for (Player p : client.getPlayers())
+        {
+            if (p == null || p == local)
+            {
+                continue;
+            }
+            if (isAttackable(local, p))
+            {
+                if (config.highlightMinimapAttackable())
+                {
+                    drawMinimapDot(g, p, config.highlightColorAttackable(), config.minimapAnimationAttackable());
+                }
             }
         }
     }

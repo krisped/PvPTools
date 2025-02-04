@@ -11,17 +11,18 @@ import net.runelite.api.events.ChatMessage;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
+import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.hiscore.HiscoreClient;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.ui.*;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.*;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 import net.runelite.client.util.ImageUtil;
-import net.runelite.client.eventbus.Subscribe;
 
 import javax.inject.Inject;
 import java.awt.image.BufferedImage;
@@ -60,19 +61,19 @@ public class PvPToolsPlugin extends Plugin
     @Inject
     private PvPToolsConfig config;
 
-    private Overlay highlightOverlay;
-    private boolean overlayAdded = false;
+    private Overlay highlightOverlayUnder;
+    private Overlay highlightOverlayAbove;
+    private boolean overlaysAdded = false;
 
     // Panel
     private PvPToolsPanel panel;
     private NavigationButton navButton;
-    // Eksempel FightLog
     private FightLog fightLog;
 
     // Highlight-liste
     private final List<BaseHighlight> highlightList = new ArrayList<>();
 
-    // Disse vil vi opprette:
+    // Underklasser
     private LocalPlayerHighlight localHighlight;
     private AttackablePlayerHighlight attackableHighlight;
     private FriendsHighlight friendsHighlight;
@@ -92,19 +93,16 @@ public class PvPToolsPlugin extends Plugin
         log.info("PvPToolsPlugin started!");
         SettingsHighlight settings = new SettingsHighlight(config);
 
-        // Opprett alle highlight-kategorier:
+        // Opprett highlight-objekter
         localHighlight = new LocalPlayerHighlight(client, config, modelOutlineRenderer, settings);
         attackableHighlight = new AttackablePlayerHighlight(client, config, modelOutlineRenderer, settings);
         friendsHighlight = new FriendsHighlight(client, config, modelOutlineRenderer, settings);
         ignoreHighlight = new IgnoreHighlight(client, config, modelOutlineRenderer, settings);
         chatHighlight = new ChatChannelHighlight(client, config, modelOutlineRenderer, settings);
 
-        // Tag
         tagHighlight = new TagPlayerHighlight(client, config, modelOutlineRenderer, settings, configManager);
-        // Registrer Tag i eventbus (unngår menydubel)
         tagHighlight.registerEvents(eventBus);
 
-        // Legg dem i highlightList
         highlightList.add(localHighlight);
         highlightList.add(attackableHighlight);
         highlightList.add(friendsHighlight);
@@ -112,8 +110,8 @@ public class PvPToolsPlugin extends Plugin
         highlightList.add(chatHighlight);
         highlightList.add(tagHighlight);
 
-        // Opprett overlay
-        highlightOverlay = new Overlay()
+        // Opprett overlay for "normal" highlights
+        highlightOverlayUnder = new Overlay()
         {
             @Override
             public java.awt.Dimension render(java.awt.Graphics2D graphics)
@@ -122,23 +120,46 @@ public class PvPToolsPlugin extends Plugin
                 {
                     return null;
                 }
+                // Tegn alt unntatt minimap
                 for (BaseHighlight h : highlightList)
                 {
-                    h.render(graphics);
+                    h.renderNormal(graphics);
                 }
                 return null;
             }
         };
-        highlightOverlay.setPosition(OverlayPosition.DYNAMIC);
-        highlightOverlay.setLayer(OverlayLayer.UNDER_WIDGETS);
-        highlightOverlay.setPriority(OverlayPriority.LOW);
+        highlightOverlayUnder.setPosition(OverlayPosition.DYNAMIC);
+        highlightOverlayUnder.setLayer(OverlayLayer.UNDER_WIDGETS);
+        highlightOverlayUnder.setPriority(OverlayPriority.LOW);
+
+        // Opprett overlay for minimap
+        highlightOverlayAbove = new Overlay()
+        {
+            @Override
+            public java.awt.Dimension render(java.awt.Graphics2D graphics)
+            {
+                if (!isAnyHighlightEnabled())
+                {
+                    return null;
+                }
+                // Tegn kun minimap
+                for (BaseHighlight h : highlightList)
+                {
+                    h.renderMinimap(graphics);
+                }
+                return null;
+            }
+        };
+        highlightOverlayAbove.setPosition(OverlayPosition.DYNAMIC);
+        highlightOverlayAbove.setLayer(OverlayLayer.ABOVE_WIDGETS);
+        highlightOverlayAbove.setPriority(OverlayPriority.HIGHEST);
 
         updateOverlayState();
 
-        // Opprett sidepanel hvis enableSidepanel() er true
+        // Opprett sidepanel (hvis aktivert)
         if (config.enableSidepanel())
         {
-            fightLog = new FightLog(client, ()-> panel.switchToHome());
+            fightLog = new FightLog(client, () -> panel.switchToHome());
             PlayerLookup lookup = new PlayerLookup(client, clientThread, hiscoreClient, itemManager, spriteManager);
             lookup.setOnBackButtonPressed(() -> panel.switchToHome());
 
@@ -159,31 +180,29 @@ public class PvPToolsPlugin extends Plugin
     {
         log.info("PvPToolsPlugin stopped!");
 
-        // Fjern sidepanel
         if (navButton != null)
         {
             clientToolbar.removeNavigation(navButton);
-            navButton=null;
+            navButton = null;
         }
 
-        // Avregistrer Tag
-        if (tagHighlight!=null)
+        // Avregistrer tag
+        if (tagHighlight != null)
         {
             tagHighlight.unregisterEvents();
         }
 
-        // Fjern overlay
-        if (overlayAdded)
+        // Fjern overlays
+        if (overlaysAdded)
         {
-            overlayManager.remove(highlightOverlay);
-            overlayAdded=false;
+            overlayManager.remove(highlightOverlayUnder);
+            overlayManager.remove(highlightOverlayAbove);
+            overlaysAdded = false;
         }
+
         highlightList.clear();
     }
 
-    // --------------------------------------------------
-    // Eksempel: ChatMessage => FightLog
-    // --------------------------------------------------
     @Subscribe
     public void onChatMessage(ChatMessage event)
     {
@@ -206,7 +225,7 @@ public class PvPToolsPlugin extends Plugin
         {
             fightLog.logFight(enemyName, true);
         }
-        sendChatMessage("Kill logged vs "+enemyName);
+        sendChatMessage("Kill logged vs " + enemyName);
     }
 
     private void handleDeathEvent(String enemyName)
@@ -215,17 +234,14 @@ public class PvPToolsPlugin extends Plugin
         {
             fightLog.logFight(enemyName, false);
         }
-        sendChatMessage("Death logged vs "+enemyName);
+        sendChatMessage("Death logged vs " + enemyName);
     }
 
     private void sendChatMessage(String text)
     {
-        client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[KP] PvP Tools: "+text, null);
+        client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[KP] PvP Tools: " + text, null);
     }
 
-    // --------------------------------------------------
-    // Oppdater overlay
-    // --------------------------------------------------
     @Subscribe
     public void onConfigChanged(ConfigChanged event)
     {
@@ -233,23 +249,24 @@ public class PvPToolsPlugin extends Plugin
         {
             return;
         }
-        // Oppdater overlay
+
         clientThread.invokeLater(this::updateOverlayState);
 
-        // Sjekk sidepanel
+        // Sidepanel av/på
         if ("enableSidepanel".equals(event.getKey()))
         {
-            clientThread.invokeLater(() -> {
-                if (!config.enableSidepanel() && navButton!=null)
+            clientThread.invokeLater(() ->
+            {
+                if (!config.enableSidepanel() && navButton != null)
                 {
                     clientToolbar.removeNavigation(navButton);
-                    navButton=null;
+                    navButton = null;
                 }
-                else if (config.enableSidepanel() && navButton==null)
+                else if (config.enableSidepanel() && navButton == null)
                 {
-                    fightLog = new FightLog(client, ()-> panel.switchToHome());
+                    fightLog = new FightLog(client, () -> panel.switchToHome());
                     PlayerLookup lookup = new PlayerLookup(client, clientThread, hiscoreClient, itemManager, spriteManager);
-                    lookup.setOnBackButtonPressed(()->panel.switchToHome());
+                    lookup.setOnBackButtonPressed(() -> panel.switchToHome());
 
                     panel = new PvPToolsPanel(lookup, fightLog);
                     BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/skull_icon.png");
@@ -266,27 +283,23 @@ public class PvPToolsPlugin extends Plugin
 
     private void updateOverlayState()
     {
-        if (isAnyHighlightEnabled())
+        boolean any = isAnyHighlightEnabled();
+        if (any && !overlaysAdded)
         {
-            if (!overlayAdded)
-            {
-                overlayManager.add(highlightOverlay);
-                overlayAdded=true;
-            }
+            overlayManager.add(highlightOverlayUnder);
+            overlayManager.add(highlightOverlayAbove);
+            overlaysAdded = true;
         }
-        else
+        else if (!any && overlaysAdded)
         {
-            if (overlayAdded)
-            {
-                overlayManager.remove(highlightOverlay);
-                overlayAdded=false;
-            }
+            overlayManager.remove(highlightOverlayUnder);
+            overlayManager.remove(highlightOverlayAbove);
+            overlaysAdded = false;
         }
     }
 
     private boolean isAnyHighlightEnabled()
     {
-        // Sjekk ALLE:
         return config.enableLocalPlayer()
                 || config.enableAttackablePlayers()
                 || config.enableFriendsHighlight()

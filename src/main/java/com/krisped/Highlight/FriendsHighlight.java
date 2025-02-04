@@ -18,7 +18,7 @@ public class FriendsHighlight extends BaseHighlight
     }
 
     @Override
-    public void render(Graphics2D graphics)
+    public void renderNormal(Graphics2D g)
     {
         if (!config.enableFriendsHighlight()) return;
 
@@ -28,21 +28,49 @@ public class FriendsHighlight extends BaseHighlight
         for (Player p : client.getPlayers())
         {
             if (p == null || p == local) continue;
-
-            // er p en friend?
             if (client.isFriended(p.getName(), false))
             {
-                renderPlayerHighlight(
-                        graphics,
-                        p,
-                        config.highlightFriendsTile(),
-                        config.highlightFriendsOutline(),
-                        config.highlightFriendsHull(),
-                        config.highlightFriendsMinimap(),
-                        config.friendsHighlightColor(),
-                        config.friendsMinimapAnimation(),
-                        config.friendsNameLocation()
-                );
+                Color c = config.friendsHighlightColor();
+                boolean showName = (config.friendsNameLocation() != PvPToolsConfig.PlayerNameLocation.DISABLED);
+
+                if (config.highlightFriendsTile())
+                {
+                    drawTile(g, p, c);
+                }
+                if (config.highlightFriendsOutline())
+                {
+                    drawOutline(p, c);
+                }
+                if (config.highlightFriendsHull())
+                {
+                    drawHull(g, p, c);
+                }
+                if (showName)
+                {
+                    String txt = p.getName() + " (" + p.getCombatLevel() + ")";
+                    drawName(g, p, txt, c, config.friendsNameLocation());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void renderMinimap(Graphics2D g)
+    {
+        if (!config.enableFriendsHighlight()) return;
+
+        Player local = client.getLocalPlayer();
+        if (local == null) return;
+
+        for (Player p : client.getPlayers())
+        {
+            if (p == null || p == local) continue;
+            if (client.isFriended(p.getName(), false))
+            {
+                if (config.highlightFriendsMinimap())
+                {
+                    drawMinimapDot(g, p, config.friendsHighlightColor(), config.friendsMinimapAnimation());
+                }
             }
         }
     }

@@ -1,7 +1,10 @@
 package com.krisped.Highlight;
 
 import com.krisped.PvPToolsConfig;
-import net.runelite.api.*;
+import net.runelite.api.Client;
+import net.runelite.api.MenuAction;
+import net.runelite.api.MenuEntry;
+import net.runelite.api.Player;
 import net.runelite.api.events.MenuEntryAdded;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.client.config.ConfigManager;
@@ -13,11 +16,6 @@ import java.awt.*;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Lar deg tagge spillere manuelt (via config-liste) eller
- * ved å klikke "Tag" i menyen (under "Trade with <player>").
- * Klikket navn limes rett i config-linjen (taggedPlayersList).
- */
 public class TagPlayerHighlight extends BaseHighlight
 {
     private final ConfigManager configManager;
@@ -57,7 +55,7 @@ public class TagPlayerHighlight extends BaseHighlight
     }
 
     @Override
-    public void render(Graphics2D graphics)
+    public void renderNormal(Graphics2D g)
     {
         if (!config.enableTagPlayerHighlight()) return;
 
@@ -72,17 +70,46 @@ public class TagPlayerHighlight extends BaseHighlight
             String nameLc = cleanNameForList(p.getName());
             if (tagged.contains(nameLc))
             {
-                renderPlayerHighlight(
-                        graphics,
-                        p,
-                        config.highlightTileTag(),
-                        config.highlightOutlineTag(),
-                        config.highlightHullTag(),
-                        config.highlightMinimapTag(),
-                        config.tagHighlightColor(),
-                        config.tagMinimapAnimation(),
-                        config.playerNameLocationTag()
-                );
+                Color c = config.tagHighlightColor();
+                boolean showName = (config.playerNameLocationTag() != PvPToolsConfig.PlayerNameLocation.DISABLED);
+
+                if (config.highlightTileTag())
+                {
+                    drawTile(g, p, c);
+                }
+                if (config.highlightOutlineTag())
+                {
+                    drawOutline(p, c);
+                }
+                if (config.highlightHullTag())
+                {
+                    drawHull(g, p, c);
+                }
+                if (showName)
+                {
+                    String txt = p.getName() + " (" + p.getCombatLevel() + ")";
+                    drawName(g, p, txt, c, config.playerNameLocationTag());
+                }
+            }
+        }
+    }
+
+    @Override
+    public void renderMinimap(Graphics2D g)
+    {
+        if (!config.enableTagPlayerHighlight()) return;
+
+        Set<String> tagged = parseTaggedPlayersList();
+        for (Player p : client.getPlayers())
+        {
+            if (p == null) continue;
+            String nameLc = cleanNameForList(p.getName());
+            if (tagged.contains(nameLc))
+            {
+                if (config.highlightMinimapTag())
+                {
+                    drawMinimapDot(g, p, config.tagHighlightColor(), config.tagMinimapAnimation());
+                }
             }
         }
     }
@@ -90,10 +117,8 @@ public class TagPlayerHighlight extends BaseHighlight
     @Subscribe
     public void onMenuEntryAdded(MenuEntryAdded event)
     {
-        if (!config.enableTagPlayerHighlight() || !config.enableRightClickTagPlayer())
-        {
-            return;
-        }
+        if (!config.enableTagPlayerHighlight() || !config.enableRightClickTagPlayer()) return;
+
         MenuEntry entry = event.getMenuEntry();
         if (entry == null) return;
 
@@ -115,10 +140,7 @@ public class TagPlayerHighlight extends BaseHighlight
     @Subscribe
     public void onMenuOptionClicked(MenuOptionClicked event)
     {
-        if (!config.enableTagPlayerHighlight() || !config.enableRightClickTagPlayer())
-        {
-            return;
-        }
+        if (!config.enableTagPlayerHighlight() || !config.enableRightClickTagPlayer()) return;
 
         String rawOption = event.getMenuOption();
         if (rawOption == null) return;
@@ -129,7 +151,6 @@ public class TagPlayerHighlight extends BaseHighlight
             return;
         }
 
-        // f.eks. <col=ffffff>SomeName (level-101)
         String rawTarget = event.getMenuTarget();
         if (rawTarget == null) rawTarget = "";
 
@@ -146,7 +167,7 @@ public class TagPlayerHighlight extends BaseHighlight
             return result;
         }
 
-        String[] lines = raw.split("\r?\n");
+        String[] lines = raw.split("\\r?\\n");
         for (String line : lines)
         {
             String nm = cleanNameForList(line);
@@ -168,22 +189,16 @@ public class TagPlayerHighlight extends BaseHighlight
         String existing = config.taggedPlayersList();
         if (existing == null) existing = "";
 
-        String newVal = existing.isEmpty()
-                ? playerName
-                : existing + "\n" + playerName;
-
+        String newVal = existing.isEmpty() ? playerName : existing + "\n" + playerName;
         configManager.setConfiguration("pvptools", "taggedPlayersList", newVal);
     }
 
     private String cleanNameForList(String raw)
     {
-        if (raw==null) return "";
-        // fjern <col=...> og lignende
-        String noCol = raw.replaceAll("<.*?>","");
-        // fjern (level-xxx)
-        String noLevel = noCol.replaceAll("\\(level-\\d+\\)","");
-        // NBSP
-        String replaced = noLevel.replace('\u00A0',' ');
+        if (raw == null) return "";
+        String noCol = raw.replaceAll("<.*?>", "");
+        String noLevel = noCol.replaceAll("\\(level-\\d+\\)", "");
+        String replaced = noLevel.replace('\u00A0', ' ');
         return replaced.trim().toLowerCase();
     }
 }
