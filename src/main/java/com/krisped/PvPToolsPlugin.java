@@ -1,31 +1,20 @@
 package com.krisped;
 
 import com.google.inject.Provides;
-import com.krisped.FightLogPanel.FightLog;
 import com.krisped.Highlight.*;
-import com.krisped.PlayerLookupPanel.PlayerLookup;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
-import net.runelite.api.events.ChatMessage;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
-import net.runelite.client.game.ItemManager;
-import net.runelite.client.game.SpriteManager;
-import net.runelite.client.hiscore.HiscoreClient;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.ui.ClientToolbar;
-import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.*;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
-import net.runelite.client.util.ImageUtil;
 
 import javax.inject.Inject;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,8 +28,6 @@ import java.util.List;
 public class PvPToolsPlugin extends Plugin
 {
     @Inject
-    private ClientToolbar clientToolbar;
-    @Inject
     private OverlayManager overlayManager;
     @Inject
     private Client client;
@@ -49,26 +36,16 @@ public class PvPToolsPlugin extends Plugin
     @Inject
     private EventBus eventBus;
     @Inject
-    private HiscoreClient hiscoreClient;
-    @Inject
-    private ItemManager itemManager;
-    @Inject
-    private SpriteManager spriteManager;
-    @Inject
     private ModelOutlineRenderer modelOutlineRenderer;
     @Inject
     private ConfigManager configManager;
     @Inject
     private PvPToolsConfig config;
 
+    // To overlays – én under widgets (normal), én over (minimap)
     private Overlay highlightOverlayUnder;
     private Overlay highlightOverlayAbove;
     private boolean overlaysAdded = false;
-
-    // Panel
-    private PvPToolsPanel panel;
-    private NavigationButton navButton;
-    private FightLog fightLog;
 
     // Highlight-liste
     private final List<BaseHighlight> highlightList = new ArrayList<>();
@@ -103,6 +80,7 @@ public class PvPToolsPlugin extends Plugin
         tagHighlight = new TagPlayerHighlight(client, config, modelOutlineRenderer, settings, configManager);
         tagHighlight.registerEvents(eventBus);
 
+        // Legg i listen
         highlightList.add(localHighlight);
         highlightList.add(attackableHighlight);
         highlightList.add(friendsHighlight);
@@ -110,7 +88,7 @@ public class PvPToolsPlugin extends Plugin
         highlightList.add(chatHighlight);
         highlightList.add(tagHighlight);
 
-        // Opprett overlay for "normal" highlights
+        // Opprett overlay for "normal" highlights (UNDER widgets)
         highlightOverlayUnder = new Overlay()
         {
             @Override
@@ -120,7 +98,6 @@ public class PvPToolsPlugin extends Plugin
                 {
                     return null;
                 }
-                // Tegn alt unntatt minimap
                 for (BaseHighlight h : highlightList)
                 {
                     h.renderNormal(graphics);
@@ -132,7 +109,7 @@ public class PvPToolsPlugin extends Plugin
         highlightOverlayUnder.setLayer(OverlayLayer.UNDER_WIDGETS);
         highlightOverlayUnder.setPriority(OverlayPriority.LOW);
 
-        // Opprett overlay for minimap
+        // Opprett overlay for minimap highlights (OVER widgets)
         highlightOverlayAbove = new Overlay()
         {
             @Override
@@ -142,7 +119,6 @@ public class PvPToolsPlugin extends Plugin
                 {
                     return null;
                 }
-                // Tegn kun minimap
                 for (BaseHighlight h : highlightList)
                 {
                     h.renderMinimap(graphics);
@@ -155,24 +131,6 @@ public class PvPToolsPlugin extends Plugin
         highlightOverlayAbove.setPriority(OverlayPriority.HIGHEST);
 
         updateOverlayState();
-
-        // Opprett sidepanel (hvis aktivert)
-        if (config.enableSidepanel())
-        {
-            fightLog = new FightLog(client, () -> panel.switchToHome());
-            PlayerLookup lookup = new PlayerLookup(client, clientThread, hiscoreClient, itemManager, spriteManager);
-            lookup.setOnBackButtonPressed(() -> panel.switchToHome());
-
-            panel = new PvPToolsPanel(lookup, fightLog);
-
-            BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/skull_icon.png");
-            navButton = NavigationButton.builder()
-                    .tooltip("[KP] PvP Tools")
-                    .icon(icon)
-                    .panel(panel)
-                    .build();
-            clientToolbar.addNavigation(navButton);
-        }
     }
 
     @Override
@@ -180,13 +138,7 @@ public class PvPToolsPlugin extends Plugin
     {
         log.info("PvPToolsPlugin stopped!");
 
-        if (navButton != null)
-        {
-            clientToolbar.removeNavigation(navButton);
-            navButton = null;
-        }
-
-        // Avregistrer tag
+        // Avregistrer Tag
         if (tagHighlight != null)
         {
             tagHighlight.unregisterEvents();
@@ -204,81 +156,13 @@ public class PvPToolsPlugin extends Plugin
     }
 
     @Subscribe
-    public void onChatMessage(ChatMessage event)
-    {
-        String msg = event.getMessage();
-        if (msg.contains("You have defeated"))
-        {
-            String enemy = msg.replace("You have defeated", "").trim();
-            handleKillEvent(enemy);
-        }
-        else if (msg.contains("You were defeated by"))
-        {
-            String enemy = msg.replace("You were defeated by", "").trim();
-            handleDeathEvent(enemy);
-        }
-    }
-
-    private void handleKillEvent(String enemyName)
-    {
-        if (fightLog != null)
-        {
-            fightLog.logFight(enemyName, true);
-        }
-        sendChatMessage("Kill logged vs " + enemyName);
-    }
-
-    private void handleDeathEvent(String enemyName)
-    {
-        if (fightLog != null)
-        {
-            fightLog.logFight(enemyName, false);
-        }
-        sendChatMessage("Death logged vs " + enemyName);
-    }
-
-    private void sendChatMessage(String text)
-    {
-        client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "[KP] PvP Tools: " + text, null);
-    }
-
-    @Subscribe
     public void onConfigChanged(ConfigChanged event)
     {
         if (!"pvptools".equals(event.getGroup()))
         {
             return;
         }
-
         clientThread.invokeLater(this::updateOverlayState);
-
-        // Sidepanel av/på
-        if ("enableSidepanel".equals(event.getKey()))
-        {
-            clientThread.invokeLater(() ->
-            {
-                if (!config.enableSidepanel() && navButton != null)
-                {
-                    clientToolbar.removeNavigation(navButton);
-                    navButton = null;
-                }
-                else if (config.enableSidepanel() && navButton == null)
-                {
-                    fightLog = new FightLog(client, () -> panel.switchToHome());
-                    PlayerLookup lookup = new PlayerLookup(client, clientThread, hiscoreClient, itemManager, spriteManager);
-                    lookup.setOnBackButtonPressed(() -> panel.switchToHome());
-
-                    panel = new PvPToolsPanel(lookup, fightLog);
-                    BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/skull_icon.png");
-                    navButton = NavigationButton.builder()
-                            .tooltip("[KP] PvP Tools")
-                            .icon(icon)
-                            .panel(panel)
-                            .build();
-                    clientToolbar.addNavigation(navButton);
-                }
-            });
-        }
     }
 
     private void updateOverlayState()

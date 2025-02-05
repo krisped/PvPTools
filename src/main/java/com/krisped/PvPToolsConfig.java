@@ -7,17 +7,8 @@ import java.awt.*;
 public interface PvPToolsConfig extends Config
 {
     // ------------------------------------------------------------------------
-    // 1) Enable Sidepanel
+    // Fjernet "enableSidepanel" - alt annet beholdt
     // ------------------------------------------------------------------------
-    @ConfigItem(
-            keyName = "enableSidepanel",
-            name = "Enable Sidepanel",
-            description = "Show the PvP Tools panel in the sidebar?"
-    )
-    default boolean enableSidepanel()
-    {
-        return true;
-    }
 
     // ------------------------------------------------------------------------
     // 2) Settings Highlight (global thickness, minimap circle, anim speed 1..10)
@@ -695,7 +686,7 @@ public interface PvPToolsConfig extends Config
     }
 
     // ------------------------------------------------------------------------
-    //  ENUMS
+    // ENUMS
     // ------------------------------------------------------------------------
     enum MinimapAnimation
     {
