@@ -42,21 +42,22 @@ public class PvPToolsPlugin extends Plugin
     @Inject
     private PvPToolsConfig config;
 
-    // To overlays – én under widgets (normal), én over (minimap)
     private Overlay highlightOverlayUnder;
     private Overlay highlightOverlayAbove;
     private boolean overlaysAdded = false;
 
-    // Highlight-liste
+    // Alle highlight-objekter
     private final List<BaseHighlight> highlightList = new ArrayList<>();
 
-    // Underklasser
     private LocalPlayerHighlight localHighlight;
     private AttackablePlayerHighlight attackableHighlight;
     private FriendsHighlight friendsHighlight;
     private IgnoreHighlight ignoreHighlight;
     private ChatChannelHighlight chatHighlight;
     private TagPlayerHighlight tagHighlight;
+
+    // Settings
+    private SettingsHighlight settings;
 
     @Provides
     PvPToolsConfig provideConfig(ConfigManager configManager)
@@ -65,22 +66,21 @@ public class PvPToolsPlugin extends Plugin
     }
 
     @Override
-    protected void startUp() throws Exception
+    protected void startUp()
     {
-        log.info("PvPToolsPlugin started!");
-        SettingsHighlight settings = new SettingsHighlight(config);
+        log.info("[KP] PvP Tools started!");
+        settings = new SettingsHighlight(config);
 
         // Opprett highlight-objekter
-        localHighlight = new LocalPlayerHighlight(client, config, modelOutlineRenderer, settings);
+        localHighlight      = new LocalPlayerHighlight(client, config, modelOutlineRenderer, settings);
         attackableHighlight = new AttackablePlayerHighlight(client, config, modelOutlineRenderer, settings);
-        friendsHighlight = new FriendsHighlight(client, config, modelOutlineRenderer, settings);
-        ignoreHighlight = new IgnoreHighlight(client, config, modelOutlineRenderer, settings);
-        chatHighlight = new ChatChannelHighlight(client, config, modelOutlineRenderer, settings);
+        friendsHighlight    = new FriendsHighlight(client, config, modelOutlineRenderer, settings);
+        ignoreHighlight     = new IgnoreHighlight(client, config, modelOutlineRenderer, settings);
+        chatHighlight       = new ChatChannelHighlight(client, config, modelOutlineRenderer, settings);
 
         tagHighlight = new TagPlayerHighlight(client, config, modelOutlineRenderer, settings, configManager);
         tagHighlight.registerEvents(eventBus);
 
-        // Legg i listen
         highlightList.add(localHighlight);
         highlightList.add(attackableHighlight);
         highlightList.add(friendsHighlight);
@@ -88,16 +88,13 @@ public class PvPToolsPlugin extends Plugin
         highlightList.add(chatHighlight);
         highlightList.add(tagHighlight);
 
-        // Opprett overlay for "normal" highlights (UNDER widgets)
+        // Overlay for "normal" highlights (UNDER widgets)
         highlightOverlayUnder = new Overlay()
         {
             @Override
             public java.awt.Dimension render(java.awt.Graphics2D graphics)
             {
-                if (!isAnyHighlightEnabled())
-                {
-                    return null;
-                }
+                if (!isAnyHighlightEnabled()) return null;
                 for (BaseHighlight h : highlightList)
                 {
                     h.renderNormal(graphics);
@@ -109,16 +106,13 @@ public class PvPToolsPlugin extends Plugin
         highlightOverlayUnder.setLayer(OverlayLayer.UNDER_WIDGETS);
         highlightOverlayUnder.setPriority(OverlayPriority.LOW);
 
-        // Opprett overlay for minimap highlights (OVER widgets)
+        // Overlay for minimap highlights (ABOVE widgets)
         highlightOverlayAbove = new Overlay()
         {
             @Override
             public java.awt.Dimension render(java.awt.Graphics2D graphics)
             {
-                if (!isAnyHighlightEnabled())
-                {
-                    return null;
-                }
+                if (!isAnyHighlightEnabled()) return null;
                 for (BaseHighlight h : highlightList)
                 {
                     h.renderMinimap(graphics);
@@ -134,24 +128,21 @@ public class PvPToolsPlugin extends Plugin
     }
 
     @Override
-    protected void shutDown() throws Exception
+    protected void shutDown()
     {
-        log.info("PvPToolsPlugin stopped!");
+        log.info("[KP] PvP Tools stopped!");
 
-        // Avregistrer Tag
         if (tagHighlight != null)
         {
             tagHighlight.unregisterEvents();
         }
 
-        // Fjern overlays
         if (overlaysAdded)
         {
             overlayManager.remove(highlightOverlayUnder);
             overlayManager.remove(highlightOverlayAbove);
             overlaysAdded = false;
         }
-
         highlightList.clear();
     }
 
@@ -162,6 +153,9 @@ public class PvPToolsPlugin extends Plugin
         {
             return;
         }
+        // Nullstill font cache hvis man bytter font/style
+        settings.resetFontCache();
+
         clientThread.invokeLater(this::updateOverlayState);
     }
 
@@ -184,8 +178,8 @@ public class PvPToolsPlugin extends Plugin
 
     private boolean isAnyHighlightEnabled()
     {
-        return config.enableLocalPlayer()
-                || config.enableAttackablePlayers()
+        return config.enableLocalPlayerHighlight()
+                || config.enableAttackablePlayersHighlight()
                 || config.enableFriendsHighlight()
                 || config.enableIgnoreHighlight()
                 || config.enableChatChannelHighlight()

@@ -30,25 +30,32 @@ public class FriendsHighlight extends BaseHighlight
             if (p == null || p == local) continue;
             if (client.isFriended(p.getName(), false))
             {
-                Color c = config.friendsHighlightColor();
-                boolean showName = (config.friendsNameLocation() != PvPToolsConfig.PlayerNameLocation.DISABLED);
+                // Name
+                String nameTxt = p.getName() + " (" + p.getCombatLevel() + ")";
+                PvPToolsConfig.PlayerNameLocation nameLoc = config.friendsNameLocation();
 
-                if (config.highlightFriendsTile())
+                // Label
+                String labelTxt = "Friend";
+                PvPToolsConfig.PlayerNameLocation labelLoc = config.friendsLabelLocation();
+
+                drawNameAndLabel(g, p, nameTxt, nameLoc, config.friendsHighlightColor(), labelTxt, labelLoc);
+
+                // Outline
+                if (config.friendsOutline())
                 {
-                    drawTile(g, p, c);
+                    drawOutline(p, config.friendsHighlightColor());
                 }
-                if (config.highlightFriendsOutline())
+
+                // Hull
+                if (config.friendsHull())
                 {
-                    drawOutline(p, c);
+                    drawHull(g, p, config.friendsHighlightColor());
                 }
-                if (config.highlightFriendsHull())
+
+                // Tile
+                if (config.friendsTile())
                 {
-                    drawHull(g, p, c);
-                }
-                if (showName)
-                {
-                    String txt = p.getName() + " (" + p.getCombatLevel() + ")";
-                    drawName(g, p, txt, c, config.friendsNameLocation());
+                    drawTile(g, p, config.friendsHighlightColor());
                 }
             }
         }
@@ -67,10 +74,7 @@ public class FriendsHighlight extends BaseHighlight
             if (p == null || p == local) continue;
             if (client.isFriended(p.getName(), false))
             {
-                if (config.highlightFriendsMinimap())
-                {
-                    drawMinimapDot(g, p, config.friendsHighlightColor(), config.friendsMinimapAnimation());
-                }
+                drawMinimapDot(g, p, config.friendsHighlightColor(), config.friendsMinimapAnimation());
             }
         }
     }

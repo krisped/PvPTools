@@ -28,23 +28,33 @@ public class IgnoreHighlight extends BaseHighlight
             if (p == null) continue;
             if (isIgnored(p.getName()))
             {
-                Color c = config.ignoreHighlightColor();
-                // for enkelhet tegner vi ALLTID navnet over hodet, men du kan endre.
-                if (config.highlightIgnoreTile())
+                // Name
+                String nameTxt = p.getName() + " (" + p.getCombatLevel() + ")";
+                PvPToolsConfig.PlayerNameLocation nameLoc = config.ignoreNameLocation();
+
+                // Label
+                String labelTxt = "Ignored";
+                PvPToolsConfig.PlayerNameLocation labelLoc = config.ignoreLabelLocation();
+
+                drawNameAndLabel(g, p, nameTxt, nameLoc, config.ignoreHighlightColor(), labelTxt, labelLoc);
+
+                // Outline
+                if (config.ignoreOutline())
                 {
-                    drawTile(g, p, c);
+                    drawOutline(p, config.ignoreHighlightColor());
                 }
-                if (config.highlightIgnoreOutline())
+
+                // Hull
+                if (config.ignoreHull())
                 {
-                    drawOutline(p, c);
+                    drawHull(g, p, config.ignoreHighlightColor());
                 }
-                if (config.highlightIgnoreHull())
+
+                // Tile
+                if (config.ignoreTile())
                 {
-                    drawHull(g, p, c);
+                    drawTile(g, p, config.ignoreHighlightColor());
                 }
-                // Du kan tilpasse hvis du vil vise nameLocation
-                String txt = p.getName() + " (" + p.getCombatLevel() + ")";
-                drawName(g, p, txt, c, PvPToolsConfig.PlayerNameLocation.ABOVE_HEAD);
             }
         }
     }
@@ -59,10 +69,7 @@ public class IgnoreHighlight extends BaseHighlight
             if (p == null) continue;
             if (isIgnored(p.getName()))
             {
-                if (config.highlightIgnoreMinimap())
-                {
-                    drawMinimapDot(g, p, config.ignoreHighlightColor(), config.ignoreMinimapAnimation());
-                }
+                drawMinimapDot(g, p, config.ignoreHighlightColor(), config.ignoreMinimapAnimation());
             }
         }
     }

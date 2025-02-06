@@ -20,42 +20,61 @@ public class LocalPlayerHighlight extends BaseHighlight
     @Override
     public void renderNormal(Graphics2D g)
     {
-        if (!config.enableLocalPlayer()) return;
+        if (!config.enableLocalPlayerHighlight())
+        {
+            return;
+        }
+
         Player local = client.getLocalPlayer();
-        if (local == null) return;
+        if (local == null)
+        {
+            return;
+        }
 
-        Color c = config.localPlayerColor();
-        boolean showName = (config.playerNameLocationLocal() != PvPToolsConfig.PlayerNameLocation.DISABLED);
+        // For navnet
+        String nameTxt = local.getName() + " (" + local.getCombatLevel() + ")";
+        PvPToolsConfig.PlayerNameLocation nameLoc = config.localPlayerNameLocation();
 
-        if (config.highlightTileLocal())
+        // For label
+        String labelTxt = "Local Player";
+        PvPToolsConfig.PlayerNameLocation labelLoc = config.localPlayerLabelLocation();
+
+        // Tegn label + name (uten overlapp)
+        drawNameAndLabel(g, local, nameTxt, nameLoc, config.localPlayerColor(), labelTxt, labelLoc);
+
+        // Outline
+        if (config.localPlayerOutline())
         {
-            drawTile(g, local, c);
+            drawOutline(local, config.localPlayerColor());
         }
-        if (config.highlightOutlineLocal())
+
+        // Hull
+        if (config.localPlayerHull())
         {
-            drawOutline(local, c);
+            drawHull(g, local, config.localPlayerColor());
         }
-        if (config.highlightHullLocal())
+
+        // Tile
+        if (config.localPlayerTile())
         {
-            drawHull(g, local, c);
-        }
-        if (showName)
-        {
-            String txt = local.getName() + " (" + local.getCombatLevel() + ")";
-            drawName(g, local, txt, c, config.playerNameLocationLocal());
+            drawTile(g, local, config.localPlayerColor());
         }
     }
 
     @Override
     public void renderMinimap(Graphics2D g)
     {
-        if (!config.enableLocalPlayer()) return;
-        Player local = client.getLocalPlayer();
-        if (local == null) return;
-
-        if (config.highlightMinimapLocal())
+        if (!config.enableLocalPlayerHighlight())
         {
-            drawMinimapDot(g, local, config.localPlayerColor(), config.minimapAnimationLocal());
+            return;
         }
+
+        Player local = client.getLocalPlayer();
+        if (local == null)
+        {
+            return;
+        }
+
+        drawMinimapDot(g, local, config.localPlayerColor(), config.localPlayerMinimapAnimation());
     }
 }

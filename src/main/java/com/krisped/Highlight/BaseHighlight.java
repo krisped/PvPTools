@@ -4,8 +4,8 @@ import com.krisped.PvPToolsConfig;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
 import net.runelite.api.coords.LocalPoint;
-import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 import net.runelite.api.Perspective;
+import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
 import java.awt.*;
 
@@ -27,22 +27,15 @@ public abstract class BaseHighlight
         this.settingsHighlight = settingsHighlight;
     }
 
-    /**
-     * Metode for å tegne 'vanlige' highlights (tile, outline, hull, navn).
-     * Kalles fra overlay som ligger UNDER widgets.
-     */
+    // Kalles i overlay UNDER_WIDGETS
     public abstract void renderNormal(Graphics2D g);
 
-    /**
-     * Metode for å tegne minimap highlights (f.eks. blinkende sirkel).
-     * Kalles fra overlay som ligger OVER widgets.
-     */
+    // Kalles i overlay ABOVE_WIDGETS
     public abstract void renderMinimap(Graphics2D g);
 
     // ----------------------------------------------------
-    // Felles hjelpefunksjoner
+    // Tegningshjelp (tile/outline/hull)
     // ----------------------------------------------------
-
     protected void drawTile(Graphics2D g, Player p, Color color)
     {
         LocalPoint lp = p.getLocalLocation();
@@ -69,16 +62,12 @@ public abstract class BaseHighlight
         );
     }
 
+    // Ingen fyll, kun ring
     protected void drawHull(Graphics2D g, Player p, Color color)
     {
         Shape hull = p.getConvexHull();
         if (hull == null) return;
 
-        // fyll
-        g.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 40));
-        g.fill(hull);
-
-        // kant
         Stroke old = g.getStroke();
         g.setStroke(new BasicStroke(settingsHighlight.getHullThickness()));
         g.setColor(color);
@@ -86,71 +75,123 @@ public abstract class BaseHighlight
         g.setStroke(old);
     }
 
-    protected void drawName(Graphics2D g, Player p, String text, Color color, PvPToolsConfig.PlayerNameLocation loc)
+    // ----------------------------------------------------
+    // 1) Felles metode: Tegn label og name uten overlapping
+    // ----------------------------------------------------
+    protected void drawNameAndLabel(Graphics2D g,
+                                    Player p,
+                                    String nameString,
+                                    PvPToolsConfig.PlayerNameLocation nameLoc,
+                                    Color highlightColor,
+                                    String labelString,
+                                    PvPToolsConfig.PlayerNameLocation labelLoc)
     {
-        net.runelite.api.Point txtPt = null;
+        // Fonter
+        Font nameF  = settingsHighlight.getNameFont();
+        Font labelF = settingsHighlight.getLabelFont();
 
+        // Label‐farge (WHITE eller highlightColor)
+        Color labelColor = settingsHighlight.getLabelColor(highlightColor);
+
+        // NB: Label vises “over” name hvis location er lik
+        if (labelLoc == nameLoc && labelLoc != PvPToolsConfig.PlayerNameLocation.DISABLED)
+        {
+            // Label over name => trekk label litt lenger opp
+            drawText(g, p, labelString, labelLoc, labelF, labelColor, 25);
+            drawText(g, p, nameString, nameLoc, nameF, highlightColor, 0);
+        }
+        else
+        {
+            // Ulike loc eller en er DISABLED => bare tegn hver for seg
+            drawText(g, p, labelString, labelLoc, labelF, labelColor, 0);
+            drawText(g, p, nameString, nameLoc, nameF, highlightColor, 0);
+        }
+    }
+
+    // ----------------------------------------------------
+    // 2) Intern metode: Tegn en tekst (med offset)
+    // ----------------------------------------------------
+    private void drawText(Graphics2D g,
+                          Player p,
+                          String text,
+                          PvPToolsConfig.PlayerNameLocation loc,
+                          Font font,
+                          Color color,
+                          int offsetY)
+    {
+        if (loc == PvPToolsConfig.PlayerNameLocation.DISABLED || text == null || text.isEmpty())
+        {
+            return;
+        }
+
+        g.setFont(font);
+
+        int textBase;
         switch (loc)
         {
             case ABOVE_HEAD:
-                txtPt = p.getCanvasTextLocation(g, text, p.getLogicalHeight() + 20);
+                textBase = p.getLogicalHeight() + 40 + offsetY;
                 break;
             case CENTER_OF_MODEL:
-                txtPt = p.getCanvasTextLocation(g, text, p.getLogicalHeight() / 2);
+                textBase = p.getLogicalHeight() / 2 + offsetY;
                 break;
-            case RIGHT_OF_MODEL:
-                txtPt = p.getCanvasTextLocation(g, text, p.getLogicalHeight());
-                if (txtPt != null)
-                {
-                    txtPt = new net.runelite.api.Point(txtPt.getX() + 10, txtPt.getY() - 5);
-                }
+            case UNDER_MODEL:
+                // litt under føttene
+                textBase = offsetY;
                 break;
             default:
                 return;
         }
 
-        if (txtPt != null)
-        {
-            g.setFont(new Font("Arial", Font.PLAIN, 11));
-            g.setColor(new Color(0, 0, 0, 130));
-            g.drawString(text, txtPt.getX() + 1, txtPt.getY() + 1);
+        net.runelite.api.Point txtPt = p.getCanvasTextLocation(g, text, textBase);
+        if (txtPt == null) return;
 
-            g.setColor(color);
-            g.drawString(text, txtPt.getX(), txtPt.getY());
+        if (loc == PvPToolsConfig.PlayerNameLocation.UNDER_MODEL)
+        {
+            // skyver litt ekstra ned
+            txtPt = new net.runelite.api.Point(txtPt.getX(), txtPt.getY() + 20);
         }
+
+        // Skugge
+        g.setColor(new Color(0,0,0,130));
+        g.drawString(text, txtPt.getX()+1, txtPt.getY()+1);
+
+        // Farge
+        g.setColor(color);
+        g.drawString(text, txtPt.getX(), txtPt.getY());
     }
 
     // ----------------------------------------------------
-    // Minimap (tegnes i eget overlay)
+    // Minimap
     // ----------------------------------------------------
-    protected void drawMinimapDot(Graphics2D g,
-                                  Player p,
-                                  Color color,
-                                  PvPToolsConfig.MinimapAnimation anim)
+    protected void drawMinimapDot(Graphics2D g, Player p, Color color, PvPToolsConfig.MinimapAnimation anim)
     {
+        if (anim == PvPToolsConfig.MinimapAnimation.NONE)
+        {
+            return; // tegner ingenting
+        }
+
         net.runelite.api.Point mmLoc = p.getMinimapLocation();
         if (mmLoc == null) return;
 
         final int baseSize = settingsHighlight.getMinimapCircleSize();
         final long speed   = settingsHighlight.getMinimapAnimSpeed();
-
         int x = mmLoc.getX();
         int y = mmLoc.getY();
 
         switch (anim)
         {
-            case Static:
+            case STATIC:
                 fillCircle(g, x, y, baseSize, color);
                 break;
-
-            case Pulse:
+            case PULSE:
             {
                 long cycle = (System.currentTimeMillis() % speed) / (speed/4);
                 int size = baseSize + (int)cycle * 2;
                 fillCircle(g, x, y, size, color);
                 break;
             }
-            case Blink:
+            case BLINK:
             {
                 long halfCycle = speed / 2;
                 if ((System.currentTimeMillis() % speed) < halfCycle)
@@ -159,14 +200,14 @@ public abstract class BaseHighlight
                 }
                 break;
             }
-            case Sonar:
+            case SONAR:
             {
                 long factor = (System.currentTimeMillis() % (2*speed)) / (speed/4);
                 int size = baseSize + (int)factor * 2;
                 drawCircle(g, x, y, size, color);
                 break;
             }
-            case Wave:
+            case WAVE:
             {
                 double t = (System.currentTimeMillis() % speed) / (double)speed;
                 double wave = Math.sin(t * 2 * Math.PI);
@@ -175,6 +216,8 @@ public abstract class BaseHighlight
                 fillCircle(g, x, y, radius, color);
                 break;
             }
+            default:
+                break;
         }
     }
 

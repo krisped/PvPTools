@@ -1,6 +1,7 @@
 package com.krisped.Highlight;
 
 import com.krisped.PvPToolsConfig;
+import com.krisped.PvPToolsConfig.TagMenuOption;
 import net.runelite.api.Client;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
@@ -13,6 +14,7 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -59,9 +61,6 @@ public class TagPlayerHighlight extends BaseHighlight
     {
         if (!config.enableTagPlayerHighlight()) return;
 
-        Player local = client.getLocalPlayer();
-        if (local == null) return;
-
         Set<String> tagged = parseTaggedPlayersList();
 
         for (Player p : client.getPlayers())
@@ -70,25 +69,32 @@ public class TagPlayerHighlight extends BaseHighlight
             String nameLc = cleanNameForList(p.getName());
             if (tagged.contains(nameLc))
             {
-                Color c = config.tagHighlightColor();
-                boolean showName = (config.playerNameLocationTag() != PvPToolsConfig.PlayerNameLocation.DISABLED);
+                // Name
+                String nameTxt = p.getName() + " (" + p.getCombatLevel() + ")";
+                PvPToolsConfig.PlayerNameLocation nameLoc = config.tagNameLocation();
 
-                if (config.highlightTileTag())
+                // Label
+                String labelTxt = "Tagged";
+                PvPToolsConfig.PlayerNameLocation labelLoc = config.tagLabelLocation();
+
+                drawNameAndLabel(g, p, nameTxt, nameLoc, config.tagHighlightColor(), labelTxt, labelLoc);
+
+                // Outline
+                if (config.tagOutline())
                 {
-                    drawTile(g, p, c);
+                    drawOutline(p, config.tagHighlightColor());
                 }
-                if (config.highlightOutlineTag())
+
+                // Hull
+                if (config.tagHull())
                 {
-                    drawOutline(p, c);
+                    drawHull(g, p, config.tagHighlightColor());
                 }
-                if (config.highlightHullTag())
+
+                // Tile
+                if (config.tagTile())
                 {
-                    drawHull(g, p, c);
-                }
-                if (showName)
-                {
-                    String txt = p.getName() + " (" + p.getCombatLevel() + ")";
-                    drawName(g, p, txt, c, config.playerNameLocationTag());
+                    drawTile(g, p, config.tagHighlightColor());
                 }
             }
         }
@@ -103,13 +109,11 @@ public class TagPlayerHighlight extends BaseHighlight
         for (Player p : client.getPlayers())
         {
             if (p == null) continue;
+
             String nameLc = cleanNameForList(p.getName());
             if (tagged.contains(nameLc))
             {
-                if (config.highlightMinimapTag())
-                {
-                    drawMinimapDot(g, p, config.tagHighlightColor(), config.tagMinimapAnimation());
-                }
+                drawMinimapDot(g, p, config.tagHighlightColor(), config.tagMinimapAnimation());
             }
         }
     }
@@ -117,19 +121,30 @@ public class TagPlayerHighlight extends BaseHighlight
     @Subscribe
     public void onMenuEntryAdded(MenuEntryAdded event)
     {
-        if (!config.enableTagPlayerHighlight() || !config.enableRightClickTagPlayer()) return;
+        if (!config.enableTagPlayerHighlight()) return;
+
+        TagMenuOption option = config.tagMenuOption();
+        if (option == TagMenuOption.OFF)
+        {
+            return;
+        }
+        else if (option == TagMenuOption.SHIFT_RIGHT_CLICK)
+        {
+            // Vises kun om SHIFT holdes nede FØR man rightklikker
+            if (!client.isKeyPressed(KeyEvent.VK_SHIFT))
+            {
+                return;
+            }
+        }
+        // => RIGHT_CLICK viser alltid
 
         MenuEntry entry = event.getMenuEntry();
-        if (entry == null) return;
+        if (entry == null || entry.getOption() == null) return;
 
-        String opt = entry.getOption();
-        if (opt == null) return;
-
-        if (opt.equalsIgnoreCase("Trade with"))
+        if (entry.getOption().equalsIgnoreCase("Trade with"))
         {
             Color c = config.tagHighlightColor();
             String colorTag = String.format("<col=%02X%02X%02X>", c.getRed(), c.getGreen(), c.getBlue());
-
             client.createMenuEntry(client.getMenuEntries().length)
                     .setOption(colorTag + "Tag</col>")
                     .setTarget(entry.getTarget())
@@ -140,17 +155,32 @@ public class TagPlayerHighlight extends BaseHighlight
     @Subscribe
     public void onMenuOptionClicked(MenuOptionClicked event)
     {
-        if (!config.enableTagPlayerHighlight() || !config.enableRightClickTagPlayer()) return;
+        if (!config.enableTagPlayerHighlight()) return;
+
+        TagMenuOption option = config.tagMenuOption();
+        if (option == TagMenuOption.OFF)
+        {
+            return;
+        }
+        else if (option == TagMenuOption.SHIFT_RIGHT_CLICK)
+        {
+            if (!client.isKeyPressed(KeyEvent.VK_SHIFT))
+            {
+                return;
+            }
+        }
 
         String rawOption = event.getMenuOption();
         if (rawOption == null) return;
 
+        // Fjern fargetag
         String optionNoColor = rawOption.replaceAll("<[^>]*>", "").trim();
         if (!optionNoColor.equalsIgnoreCase("Tag"))
         {
             return;
         }
 
+        // Legg til i config
         String rawTarget = event.getMenuTarget();
         if (rawTarget == null) rawTarget = "";
 
@@ -158,6 +188,9 @@ public class TagPlayerHighlight extends BaseHighlight
         addPlayerToTaggedList(targetName);
     }
 
+    // ---------------------------------
+    //  Hjelp: parse liste
+    // ---------------------------------
     private Set<String> parseTaggedPlayersList()
     {
         Set<String> result = new HashSet<>();
@@ -189,7 +222,10 @@ public class TagPlayerHighlight extends BaseHighlight
         String existing = config.taggedPlayersList();
         if (existing == null) existing = "";
 
-        String newVal = existing.isEmpty() ? playerName : existing + "\n" + playerName;
+        String newVal = existing.isEmpty()
+                ? playerName
+                : existing + "\n" + playerName;
+
         configManager.setConfiguration("pvptools", "taggedPlayersList", newVal);
     }
 
