@@ -1,6 +1,7 @@
 package com.krisped.Highlight;
 
 import com.krisped.PvPToolsConfig;
+import com.krisped.PvPToolsConfig.LabelColorMode;
 import net.runelite.api.Client;
 import net.runelite.api.Ignore;
 import net.runelite.api.Player;
@@ -15,46 +16,34 @@ public class IgnoreHighlight extends BaseHighlight
                            ModelOutlineRenderer modelOutlineRenderer,
                            SettingsHighlight settingsHighlight)
     {
-        super(client, config, modelOutlineRenderer, settingsHighlight);
+        super(client,config,modelOutlineRenderer,settingsHighlight);
     }
 
     @Override
     public void renderNormal(Graphics2D g)
     {
-        if (!config.enableIgnoreHighlight()) return;
+        if(!config.enableIgnoreHighlight())return;
 
-        for (Player p : client.getPlayers())
+        for(Player p: client.getPlayers())
         {
-            if (p == null) continue;
-            if (isIgnored(p.getName()))
+            if(p==null)continue;
+            if(isIgnored(p.getName()))
             {
-                // Name
-                String nameTxt = p.getName() + " (" + p.getCombatLevel() + ")";
-                PvPToolsConfig.PlayerNameLocation nameLoc = config.ignoreNameLocation();
+                Color c= config.ignoreHighlightColor();
+                if(config.ignoreOutline()) drawOutline(p,c);
+                if(config.ignoreHull())    drawHull(g,p,c);
+                if(config.ignoreTile())    drawTile(g,p,c);
 
-                // Label
-                String labelTxt = "Ignored";
-                PvPToolsConfig.PlayerNameLocation labelLoc = config.ignoreLabelLocation();
+                String nameTxt= p.getName()+" ("+p.getCombatLevel()+")";
+                PvPToolsConfig.PlayerNameLocation nmLoc= config.ignoreNameLocation();
 
-                drawNameAndLabel(g, p, nameTxt, nameLoc, config.ignoreHighlightColor(), labelTxt, labelLoc);
+                String lbTxt= "Ignored";
+                PvPToolsConfig.PlayerNameLocation lbLoc= config.ignoreLabelLocation();
 
-                // Outline
-                if (config.ignoreOutline())
-                {
-                    drawOutline(p, config.ignoreHighlightColor());
-                }
+                LabelColorMode mode= config.ignoreLabelColorMode();
+                Color lbColor= (mode==LabelColorMode.WHITE)?Color.WHITE:c;
 
-                // Hull
-                if (config.ignoreHull())
-                {
-                    drawHull(g, p, config.ignoreHighlightColor());
-                }
-
-                // Tile
-                if (config.ignoreTile())
-                {
-                    drawTile(g, p, config.ignoreHighlightColor());
-                }
+                drawNameAndLabel(g,p,nameTxt,nmLoc,c,lbTxt,lbLoc,lbColor);
             }
         }
     }
@@ -62,22 +51,21 @@ public class IgnoreHighlight extends BaseHighlight
     @Override
     public void renderMinimap(Graphics2D g)
     {
-        if (!config.enableIgnoreHighlight()) return;
-
-        for (Player p : client.getPlayers())
+        if(!config.enableIgnoreHighlight())return;
+        for(Player p: client.getPlayers())
         {
-            if (p == null) continue;
-            if (isIgnored(p.getName()))
+            if(p==null)continue;
+            if(isIgnored(p.getName()))
             {
-                drawMinimapDot(g, p, config.ignoreHighlightColor(), config.ignoreMinimapAnimation());
+                drawMinimapDot(g,p, config.ignoreHighlightColor(), config.ignoreMinimapAnimation());
             }
         }
     }
 
     private boolean isIgnored(String name)
     {
-        if (name == null || client.getIgnoreContainer() == null) return false;
-        Ignore i = client.getIgnoreContainer().findByName(name);
-        return (i != null);
+        if(name==null||client.getIgnoreContainer()==null)return false;
+        Ignore i= client.getIgnoreContainer().findByName(name);
+        return (i!=null);
     }
 }

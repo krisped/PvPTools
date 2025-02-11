@@ -1,6 +1,7 @@
 package com.krisped.Highlight;
 
 import com.krisped.PvPToolsConfig;
+import com.krisped.PvPToolsConfig.LabelColorMode;
 import net.runelite.api.*;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
@@ -9,8 +10,7 @@ import java.util.EnumSet;
 
 public class AttackablePlayerHighlight extends BaseHighlight
 {
-    private static final int IN_WILDERNESS    = 5963;
-    private static final int WILDERNESS_LEVEL = 5964;
+    private static final int IN_WILDERNESS=5963, WILDERNESS_LEVEL=5964;
 
     public AttackablePlayerHighlight(Client client,
                                      PvPToolsConfig config,
@@ -23,43 +23,33 @@ public class AttackablePlayerHighlight extends BaseHighlight
     @Override
     public void renderNormal(Graphics2D g)
     {
-        if (!config.enableAttackablePlayersHighlight()) return;
+        if(!config.enableAttackablePlayersHighlight())return;
 
-        Player local = client.getLocalPlayer();
-        if (local == null) return;
+        Player local=client.getLocalPlayer();
+        if(local==null)return;
 
-        for (Player p : client.getPlayers())
+        for(Player p: client.getPlayers())
         {
-            if (p == null || p == local) continue;
-            if (isAttackable(local, p))
+            if(p==null||p==local)continue;
+            if(isAttackable(local,p))
             {
+                Color c= config.attackableColor();
+                if(config.attackableOutline()) drawOutline(p,c);
+                if(config.attackableHull())    drawHull(g,p,c);
+                if(config.attackableTile())    drawTile(g,p,c);
+
                 // Name
-                String nameTxt = p.getName() + " (" + p.getCombatLevel() + ")";
-                PvPToolsConfig.PlayerNameLocation nameLoc = config.attackableNameLocation();
+                String nameTxt= p.getName()+" ("+p.getCombatLevel()+")";
+                PvPToolsConfig.PlayerNameLocation nLoc= config.attackableNameLocation();
 
                 // Label
-                String labelTxt = "Attackable";
-                PvPToolsConfig.PlayerNameLocation labelLoc = config.attackableLabelLocation();
+                String lbTxt= "Attackable";
+                PvPToolsConfig.PlayerNameLocation lbLoc= config.attackableLabelLocation();
 
-                drawNameAndLabel(g, p, nameTxt, nameLoc, config.attackableColor(), labelTxt, labelLoc);
+                LabelColorMode mode= config.attackableLabelColorMode();
+                Color lbColor= (mode==LabelColorMode.WHITE)?Color.WHITE:c;
 
-                // Outline
-                if (config.attackableOutline())
-                {
-                    drawOutline(p, config.attackableColor());
-                }
-
-                // Hull
-                if (config.attackableHull())
-                {
-                    drawHull(g, p, config.attackableColor());
-                }
-
-                // Tile
-                if (config.attackableTile())
-                {
-                    drawTile(g, p, config.attackableColor());
-                }
+                drawNameAndLabel(g,p,nameTxt,nLoc,c,lbTxt,lbLoc,lbColor);
             }
         }
     }
@@ -67,15 +57,14 @@ public class AttackablePlayerHighlight extends BaseHighlight
     @Override
     public void renderMinimap(Graphics2D g)
     {
-        if (!config.enableAttackablePlayersHighlight()) return;
+        if(!config.enableAttackablePlayersHighlight())return;
+        Player local=client.getLocalPlayer();
+        if(local==null)return;
 
-        Player local = client.getLocalPlayer();
-        if (local == null) return;
-
-        for (Player p : client.getPlayers())
+        for(Player p: client.getPlayers())
         {
-            if (p == null || p == local) continue;
-            if (isAttackable(local, p))
+            if(p==null||p==local)continue;
+            if(isAttackable(local,p))
             {
                 drawMinimapDot(g, p, config.attackableColor(), config.attackableMinimapAnimation());
             }
@@ -84,27 +73,23 @@ public class AttackablePlayerHighlight extends BaseHighlight
 
     private boolean isAttackable(Player local, Player other)
     {
-        int localCombat = local.getCombatLevel();
-        int otherCombat = other.getCombatLevel();
-
-        // wilderness
-        if (client.getVarbitValue(IN_WILDERNESS) == 1)
+        int lc= local.getCombatLevel(), oc= other.getCombatLevel();
+        if(client.getVarbitValue(IN_WILDERNESS)==1)
         {
-            int wLvl = client.getVarbitValue(WILDERNESS_LEVEL);
-            return Math.abs(localCombat - otherCombat) <= wLvl;
+            int w= client.getVarbitValue(WILDERNESS_LEVEL);
+            return Math.abs(lc-oc)<= w;
         }
-        // pvp world
-        else if (isPvpWorld())
+        else if(isPvpWorld())
         {
-            int wLvl = client.getVarbitValue(WILDERNESS_LEVEL);
-            return Math.abs(localCombat - otherCombat) <= (15 + wLvl);
+            int w= client.getVarbitValue(WILDERNESS_LEVEL);
+            return Math.abs(lc-oc)<= (15+w);
         }
         return false;
     }
 
     private boolean isPvpWorld()
     {
-        EnumSet<WorldType> types = client.getWorldType();
-        return types.contains(WorldType.PVP) || types.contains(WorldType.HIGH_RISK);
+        EnumSet<WorldType> t=client.getWorldType();
+        return t.contains(WorldType.PVP)|| t.contains(WorldType.HIGH_RISK);
     }
 }

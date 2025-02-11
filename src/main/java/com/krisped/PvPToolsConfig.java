@@ -7,848 +7,9 @@ import java.awt.*;
 @ConfigGroup("pvptools")
 public interface PvPToolsConfig extends Config
 {
-    // ------------------------------------------------------------------------
-    // A) Global Settings Highlight
-    // ------------------------------------------------------------------------
-    @ConfigSection(
-            name = "Settings Highlight",
-            description = "Global highlight settings (thickness, minimap size/speed, fonts, styles, label color mode).",
-            position = 0,
-            closedByDefault = true
-    )
-    String highlightSettingsSection = "highlightSettingsSection";
-
-    // -- Sliders for thickness + minimap
-    @Range(min = 1, max = 255)
-    @ConfigItem(
-            keyName = "tileThickness",
-            name = "Tile Thickness",
-            description = "Line thickness (1..255) for tile highlights.",
-            section = highlightSettingsSection
-    )
-    default int tileThickness()
-    {
-        return 2;
-    }
-
-    @Range(min = 1, max = 255)
-    @ConfigItem(
-            keyName = "outlineThickness",
-            name = "Outline Thickness",
-            description = "Outline thickness (1..255) for model highlight.",
-            section = highlightSettingsSection
-    )
-    default int outlineThickness()
-    {
-        return 2;
-    }
-
-    @Range(min = 1, max = 255)
-    @ConfigItem(
-            keyName = "hullThickness",
-            name = "Hull Thickness",
-            description = "Stroke thickness (1..255) around hull highlight. (No fill)",
-            section = highlightSettingsSection
-    )
-    default int hullThickness()
-    {
-        return 2;
-    }
-
-    @Range(min = 1, max = 255)
-    @ConfigItem(
-            keyName = "minimapCircleSize",
-            name = "Minimap Circle Size",
-            description = "Base size (1..255) of the minimap highlight circle.",
-            section = highlightSettingsSection
-    )
-    default int minimapCircleSize()
-    {
-        return 6;
-    }
-
-    @Range(min = 1, max = 15)
-    @ConfigItem(
-            keyName = "minimapAnimSpeed",
-            name = "Minimap Anim Speed",
-            description = "Animation speed factor (1=fast, 15=slow).",
-            section = highlightSettingsSection
-    )
-    default int minimapAnimSpeed()
-    {
-        return 5;
-    }
-
-    // -- Name font & style
-    @ConfigItem(
-            keyName = "nameFont",
-            name = "Name Font",
-            description = "Font used for player names (10 choices).",
-            section = highlightSettingsSection
-    )
-    default NameFont nameFont()
-    {
-        return NameFont.ARIAL;
-    }
-
-    @ConfigItem(
-            keyName = "nameBold",
-            name = "Name Bold",
-            description = "Use bold style for names?",
-            section = highlightSettingsSection
-    )
-    default boolean nameBold()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "nameItalic",
-            name = "Name Italic",
-            description = "Use italic style for names?",
-            section = highlightSettingsSection
-    )
-    default boolean nameItalic()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "nameUnderline",
-            name = "Name Underline",
-            description = "Underline the player names?",
-            section = highlightSettingsSection
-    )
-    default boolean nameUnderline()
-    {
-        return false;
-    }
-
-    // -- Label font & style
-    @ConfigItem(
-            keyName = "labelFont",
-            name = "Label Font",
-            description = "Font used for category labels (Local Player, Friend, etc.).",
-            section = highlightSettingsSection
-    )
-    default NameFont labelFont()
-    {
-        return NameFont.ARIAL;
-    }
-
-    @ConfigItem(
-            keyName = "labelBold",
-            name = "Label Bold",
-            description = "Use bold style for labels?",
-            section = highlightSettingsSection
-    )
-    default boolean labelBold()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "labelItalic",
-            name = "Label Italic",
-            description = "Use italic style for labels?",
-            section = highlightSettingsSection
-    )
-    default boolean labelItalic()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "labelUnderline",
-            name = "Label Underline",
-            description = "Underline the category labels?",
-            section = highlightSettingsSection
-    )
-    default boolean labelUnderline()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "labelColorMode",
-            name = "Label Color Mode",
-            description = "Use highlight color or White for category label?",
-            section = highlightSettingsSection
-    )
-    default LabelColorMode labelColorMode()
-    {
-        return LabelColorMode.CATEGORY_COLOR;
-    }
-
-    // ------------------------------------------------------------------------
-    // B) Local Player Highlight
-    // ------------------------------------------------------------------------
-    @ConfigSection(
-            name = "Local Player Highlight",
-            description = "Settings for local player highlight.",
-            position = 1,
-            closedByDefault = true
-    )
-    String localPlayerHighlightSection = "localPlayerHighlightSection";
-
-    @ConfigItem(
-            keyName = "enableLocalPlayerHighlight",
-            name = "Enable Local Player Highlight",
-            description = "Highlight the local player?",
-            position = 1,
-            section = localPlayerHighlightSection
-    )
-    default boolean enableLocalPlayerHighlight()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "localPlayerNameLocation",
-            name = "Name Location",
-            description = "Where to display player's own name.",
-            position = 2,
-            section = localPlayerHighlightSection
-    )
-    default PlayerNameLocation localPlayerNameLocation()
-    {
-        return PlayerNameLocation.DISABLED;
-    }
-
-    @ConfigItem(
-            keyName = "localPlayerOutline",
-            name = "Outline",
-            description = "Highlight local player's outline?",
-            position = 3,
-            section = localPlayerHighlightSection
-    )
-    default boolean localPlayerOutline()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "localPlayerHull",
-            name = "Hull",
-            description = "Highlight local player's hull (ring)?",
-            position = 4,
-            section = localPlayerHighlightSection
-    )
-    default boolean localPlayerHull()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "localPlayerTile",
-            name = "Tile",
-            description = "Highlight local player's tile?",
-            position = 5,
-            section = localPlayerHighlightSection
-    )
-    default boolean localPlayerTile()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "localPlayerMinimapAnimation",
-            name = "Minimap Animation",
-            description = "Animation for local player's minimap highlight. (None=off)",
-            position = 6,
-            section = localPlayerHighlightSection
-    )
-    default MinimapAnimation localPlayerMinimapAnimation()
-    {
-        return MinimapAnimation.NONE;
-    }
-
-    @ConfigItem(
-            keyName = "localPlayerColor",
-            name = "Color",
-            description = "Color for local player highlight.",
-            position = 7,
-            section = localPlayerHighlightSection
-    )
-    default Color localPlayerColor()
-    {
-        return Color.CYAN;
-    }
-
-    @ConfigItem(
-            keyName = "localPlayerLabelLocation",
-            name = "Category Label",
-            description = "Where to display 'Local Player' label (if any).",
-            position = 8,
-            section = localPlayerHighlightSection
-    )
-    default PlayerNameLocation localPlayerLabelLocation()
-    {
-        return PlayerNameLocation.DISABLED;
-    }
-
-    // ------------------------------------------------------------------------
-    // C) Attackable Highlight
-    // ------------------------------------------------------------------------
-    @ConfigSection(
-            name = "Attackable Highlight",
-            description = "Settings for players you can attack.",
-            position = 2,
-            closedByDefault = true
-    )
-    String attackableHighlightSection = "attackableHighlightSection";
-
-    @ConfigItem(
-            keyName = "enableAttackablePlayersHighlight",
-            name = "Enable Attackable Highlight",
-            description = "Highlight players you can attack?",
-            position = 1,
-            section = attackableHighlightSection
-    )
-    default boolean enableAttackablePlayersHighlight()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "attackableNameLocation",
-            name = "Name Location",
-            description = "Where to display name/level for attackable players.",
-            position = 2,
-            section = attackableHighlightSection
-    )
-    default PlayerNameLocation attackableNameLocation()
-    {
-        return PlayerNameLocation.DISABLED;
-    }
-
-    @ConfigItem(
-            keyName = "attackableOutline",
-            name = "Outline",
-            description = "Highlight outline for attackable players?",
-            position = 3,
-            section = attackableHighlightSection
-    )
-    default boolean attackableOutline()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "attackableHull",
-            name = "Hull",
-            description = "Highlight hull (ring) for attackable players?",
-            position = 4,
-            section = attackableHighlightSection
-    )
-    default boolean attackableHull()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "attackableTile",
-            name = "Tile",
-            description = "Highlight tile for attackable players?",
-            position = 5,
-            section = attackableHighlightSection
-    )
-    default boolean attackableTile()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "attackableMinimapAnimation",
-            name = "Minimap Animation",
-            description = "Animation on minimap. (None=off)",
-            position = 6,
-            section = attackableHighlightSection
-    )
-    default MinimapAnimation attackableMinimapAnimation()
-    {
-        return MinimapAnimation.NONE;
-    }
-
-    @ConfigItem(
-            keyName = "attackableColor",
-            name = "Color",
-            description = "Color for attackable players highlight",
-            position = 7,
-            section = attackableHighlightSection
-    )
-    default Color attackableColor()
-    {
-        return Color.BLUE;
-    }
-
-    @ConfigItem(
-            keyName = "attackableLabelLocation",
-            name = "Category Label",
-            description = "Where to display 'Attackable' label.",
-            position = 8,
-            section = attackableHighlightSection
-    )
-    default PlayerNameLocation attackableLabelLocation()
-    {
-        return PlayerNameLocation.DISABLED;
-    }
-
-    // ------------------------------------------------------------------------
-    // D) Friends Highlight
-    // ------------------------------------------------------------------------
-    @ConfigSection(
-            name = "Friends Highlight",
-            description = "Highlight your friends",
-            position = 3,
-            closedByDefault = true
-    )
-    String friendsHighlightSection = "friendsHighlightSection";
-
-    @ConfigItem(
-            keyName = "enableFriendsHighlight",
-            name = "Enable Friends Highlight",
-            description = "Highlight your friends?",
-            position = 1,
-            section = friendsHighlightSection
-    )
-    default boolean enableFriendsHighlight()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "friendsNameLocation",
-            name = "Name Location",
-            description = "Where to show name/level for friends",
-            position = 2,
-            section = friendsHighlightSection
-    )
-    default PlayerNameLocation friendsNameLocation()
-    {
-        return PlayerNameLocation.ABOVE_HEAD;
-    }
-
-    @ConfigItem(
-            keyName = "friendsOutline",
-            name = "Outline",
-            description = "Highlight outline for friends?",
-            position = 3,
-            section = friendsHighlightSection
-    )
-    default boolean friendsOutline()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "friendsHull",
-            name = "Hull",
-            description = "Highlight hull (ring) for friends?",
-            position = 4,
-            section = friendsHighlightSection
-    )
-    default boolean friendsHull()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "friendsTile",
-            name = "Tile",
-            description = "Highlight tile for friends?",
-            position = 5,
-            section = friendsHighlightSection
-    )
-    default boolean friendsTile()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "friendsMinimapAnimation",
-            name = "Minimap Animation",
-            description = "Animation for friends' minimap highlight. (None=off)",
-            position = 6,
-            section = friendsHighlightSection
-    )
-    default MinimapAnimation friendsMinimapAnimation()
-    {
-        return MinimapAnimation.NONE;
-    }
-
-    @ConfigItem(
-            keyName = "friendsHighlightColor",
-            name = "Color",
-            description = "Color for highlighting friends",
-            position = 7,
-            section = friendsHighlightSection
-    )
-    default Color friendsHighlightColor()
-    {
-        return Color.GREEN;
-    }
-
-    @ConfigItem(
-            keyName = "friendsLabelLocation",
-            name = "Category Label",
-            description = "Where to display 'Friend' label.",
-            position = 8,
-            section = friendsHighlightSection
-    )
-    default PlayerNameLocation friendsLabelLocation()
-    {
-        return PlayerNameLocation.DISABLED;
-    }
-
-    // ------------------------------------------------------------------------
-    // E) Ignore Highlight
-    // ------------------------------------------------------------------------
-    @ConfigSection(
-            name = "Ignore Highlight",
-            description = "Highlight players on your ignore list",
-            position = 4,
-            closedByDefault = true
-    )
-    String ignoreHighlightSection = "ignoreHighlightSection";
-
-    @ConfigItem(
-            keyName = "enableIgnoreHighlight",
-            name = "Enable Ignore Highlight",
-            description = "Highlight players on your ignore list?",
-            position = 1,
-            section = ignoreHighlightSection
-    )
-    default boolean enableIgnoreHighlight()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "ignoreNameLocation",
-            name = "Name Location",
-            description = "Where to show name/level for ignored players",
-            position = 2,
-            section = ignoreHighlightSection
-    )
-    default PlayerNameLocation ignoreNameLocation()
-    {
-        return PlayerNameLocation.DISABLED;
-    }
-
-    @ConfigItem(
-            keyName = "ignoreOutline",
-            name = "Outline",
-            description = "Highlight outline for ignored players?",
-            position = 3,
-            section = ignoreHighlightSection
-    )
-    default boolean ignoreOutline()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "ignoreHull",
-            name = "Hull",
-            description = "Highlight hull (ring) for ignored players?",
-            position = 4,
-            section = ignoreHighlightSection
-    )
-    default boolean ignoreHull()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "ignoreTile",
-            name = "Tile",
-            description = "Highlight tile for ignored players?",
-            position = 5,
-            section = ignoreHighlightSection
-    )
-    default boolean ignoreTile()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "ignoreMinimapAnimation",
-            name = "Minimap Animation",
-            description = "Animation for ignore minimap highlight. (None=off)",
-            position = 6,
-            section = ignoreHighlightSection
-    )
-    default MinimapAnimation ignoreMinimapAnimation()
-    {
-        return MinimapAnimation.NONE;
-    }
-
-    @ConfigItem(
-            keyName = "ignoreHighlightColor",
-            name = "Color",
-            description = "Color used for ignore highlight",
-            position = 7,
-            section = ignoreHighlightSection
-    )
-    default Color ignoreHighlightColor()
-    {
-        return Color.RED;
-    }
-
-    @ConfigItem(
-            keyName = "ignoreLabelLocation",
-            name = "Category Label",
-            description = "Where to display 'Ignored' label.",
-            position = 8,
-            section = ignoreHighlightSection
-    )
-    default PlayerNameLocation ignoreLabelLocation()
-    {
-        return PlayerNameLocation.DISABLED;
-    }
-
-    // ------------------------------------------------------------------------
-    // F) Chat Channel Highlight
-    // ------------------------------------------------------------------------
-    @ConfigSection(
-            name = "Chat Channel Highlight",
-            description = "Highlight players in your clan/friends chat channel",
-            position = 5,
-            closedByDefault = true
-    )
-    String chatChannelHighlightSection = "chatChannelHighlightSection";
-
-    @ConfigItem(
-            keyName = "enableChatChannelHighlight",
-            name = "Enable ChatChannel Highlight",
-            description = "Highlight players in your clan/chat channel?",
-            position = 1,
-            section = chatChannelHighlightSection
-    )
-    default boolean enableChatChannelHighlight()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "chatChannelNameLocation",
-            name = "Name Location",
-            description = "Where to draw name/level for chat channel players",
-            position = 2,
-            section = chatChannelHighlightSection
-    )
-    default PlayerNameLocation chatChannelNameLocation()
-    {
-        return PlayerNameLocation.DISABLED;
-    }
-
-    @ConfigItem(
-            keyName = "chatChannelOutline",
-            name = "Outline",
-            description = "Outline highlight for chat channel players?",
-            position = 3,
-            section = chatChannelHighlightSection
-    )
-    default boolean chatChannelOutline()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "chatChannelHull",
-            name = "Hull",
-            description = "Hull (ring) highlight for chat channel players?",
-            position = 4,
-            section = chatChannelHighlightSection
-    )
-    default boolean chatChannelHull()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "chatChannelTile",
-            name = "Tile",
-            description = "Tile highlight for chat channel players?",
-            position = 5,
-            section = chatChannelHighlightSection
-    )
-    default boolean chatChannelTile()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "chatChannelMinimapAnimation",
-            name = "Minimap Animation",
-            description = "Animation for chat channel minimap highlight (None=off).",
-            position = 6,
-            section = chatChannelHighlightSection
-    )
-    default MinimapAnimation chatChannelMinimapAnimation()
-    {
-        return MinimapAnimation.NONE;
-    }
-
-    @ConfigItem(
-            keyName = "chatChannelColor",
-            name = "Color",
-            description = "Color for chat channel highlight",
-            position = 7,
-            section = chatChannelHighlightSection
-    )
-    default Color chatChannelColor()
-    {
-        return Color.YELLOW;
-    }
-
-    @ConfigItem(
-            keyName = "chatChannelLabelLocation",
-            name = "Category Label",
-            description = "Where to display 'Chat Channel' label.",
-            position = 8,
-            section = chatChannelHighlightSection
-    )
-    default PlayerNameLocation chatChannelLabelLocation()
-    {
-        return PlayerNameLocation.DISABLED;
-    }
-
-    // ------------------------------------------------------------------------
-    // G) Tag Highlight
-    // ------------------------------------------------------------------------
-    @ConfigSection(
-            name = "Tag Players Highlight",
-            description = "Settings for tagging specific players by name.",
-            position = 6,
-            closedByDefault = true
-    )
-    String highlightTagPlayersSection = "highlightTagPlayers";
-
-    @ConfigItem(
-            keyName = "enableTagPlayerHighlight",
-            name = "Enable Tag Highlight",
-            description = "Enable highlight for players manually tagged in config.",
-            position = 1,
-            section = highlightTagPlayersSection
-    )
-    default boolean enableTagPlayerHighlight()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "taggedPlayersList",
-            name = "Tagged Player List",
-            description = "Multi-line list of players (one per line).",
-            position = 2,
-            section = highlightTagPlayersSection
-    )
-    default String taggedPlayersList()
-    {
-        return "";
-    }
-
-    @ConfigItem(
-            keyName = "tagMenuOption",
-            name = "Tag Menu Option",
-            description = "Off = no 'Tag' in menu, Right Click = always show, Shift+Right Click = only show if SHIFT is held.",
-            position = 3,
-            section = highlightTagPlayersSection
-    )
-    default TagMenuOption tagMenuOption()
-    {
-        return TagMenuOption.OFF;
-    }
-
-    @ConfigItem(
-            keyName = "tagNameLocation",
-            name = "Name Location",
-            description = "Where to display name/level for tagged players.",
-            position = 4,
-            section = highlightTagPlayersSection
-    )
-    default PlayerNameLocation tagNameLocation()
-    {
-        return PlayerNameLocation.DISABLED;
-    }
-
-    @ConfigItem(
-            keyName = "tagOutline",
-            name = "Outline",
-            description = "Highlight the outline of tagged players?",
-            position = 5,
-            section = highlightTagPlayersSection
-    )
-    default boolean tagOutline()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "tagHull",
-            name = "Hull",
-            description = "Highlight the hull (ring) of tagged players?",
-            position = 6,
-            section = highlightTagPlayersSection
-    )
-    default boolean tagHull()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "tagTile",
-            name = "Tile",
-            description = "Highlight the tile of tagged players?",
-            position = 7,
-            section = highlightTagPlayersSection
-    )
-    default boolean tagTile()
-    {
-        return false;
-    }
-
-    @ConfigItem(
-            keyName = "tagMinimapAnimation",
-            name = "Minimap Animation",
-            description = "Animation for tagged players' minimap highlight. (None=off)",
-            position = 8,
-            section = highlightTagPlayersSection
-    )
-    default MinimapAnimation tagMinimapAnimation()
-    {
-        return MinimapAnimation.NONE;
-    }
-
-    @ConfigItem(
-            keyName = "tagHighlightColor",
-            name = "Color",
-            description = "Color used for tagged players highlight.",
-            position = 9,
-            section = highlightTagPlayersSection
-    )
-    default Color tagHighlightColor()
-    {
-        return Color.ORANGE;
-    }
-
-    @ConfigItem(
-            keyName = "tagLabelLocation",
-            name = "Category Label",
-            description = "Where to display 'Tagged' label.",
-            position = 10,
-            section = highlightTagPlayersSection
-    )
-    default PlayerNameLocation tagLabelLocation()
-    {
-        return PlayerNameLocation.DISABLED;
-    }
-
-    // ------------------------------------------------------------------------
+    // ----------------------------------------------------
     // ENUMS
-    // ------------------------------------------------------------------------
+    // ----------------------------------------------------
     enum MinimapAnimation
     {
         NONE,
@@ -867,9 +28,6 @@ public interface PvPToolsConfig extends Config
         UNDER_MODEL
     }
 
-    /**
-     * Ti forskjellige fonter som du ønsket
-     */
     enum NameFont
     {
         ARIAL,
@@ -884,9 +42,6 @@ public interface PvPToolsConfig extends Config
         SERIF
     }
 
-    /**
-     * LabelColorMode: enten hvit eller samme som highlight
-     */
     enum LabelColorMode
     {
         WHITE,
@@ -897,6 +52,717 @@ public interface PvPToolsConfig extends Config
     {
         OFF,
         RIGHT_CLICK,
-        SHIFT_RIGHT_CLICK
+        CUSTOM_RIGHT_CLICK
     }
+
+    // ----------------------------------------------------
+    // 1) Global: Thickness & Minimap
+    // ----------------------------------------------------
+    @ConfigSection(
+            name="Thickness & Minimap",
+            description="Global thickness + minimap settings",
+            position=0,
+            closedByDefault=true
+    )
+    String secThicknessMinimap = "secThicknessMinimap";
+
+    @Range(min=1, max=255)
+    @ConfigItem(
+            keyName="tileThickness",
+            name="Tile Thickness",
+            description="Line thickness (1..255) for tile highlights",
+            section=secThicknessMinimap
+    )
+    default int tileThickness() {return 2;}
+
+    @Range(min=1, max=255)
+    @ConfigItem(
+            keyName="outlineThickness",
+            name="Outline Thickness",
+            description="Outline thickness (1..255).",
+            section=secThicknessMinimap
+    )
+    default int outlineThickness() {return 2;}
+
+    @Range(min=1, max=255)
+    @ConfigItem(
+            keyName="hullThickness",
+            name="Hull Thickness",
+            description="Stroke thickness for hull (no fill).",
+            section=secThicknessMinimap
+    )
+    default int hullThickness() {return 2;}
+
+    @Range(min=1, max=255)
+    @ConfigItem(
+            keyName="minimapCircleSize",
+            name="Minimap Circle Size",
+            description="Base size (1..255) of minimap highlight circle.",
+            section=secThicknessMinimap
+    )
+    default int minimapCircleSize() {return 6;}
+
+    @Range(min=1, max=15)
+    @ConfigItem(
+            keyName="minimapAnimSpeed",
+            name="Minimap Anim Speed",
+            description="Animation speed factor (1=fast, 15=slow).",
+            section=secThicknessMinimap
+    )
+    default int minimapAnimSpeed() {return 5;}
+
+    // ----------------------------------------------------
+    // 2) Name Font & Style + Name Offset
+    // ----------------------------------------------------
+    @ConfigSection(
+            name="Name Font & Style",
+            description="Global name font, style, offset",
+            position=1,
+            closedByDefault=true
+    )
+    String secNameFont = "secNameFont";
+
+    @ConfigItem(
+            keyName="nameFont",
+            name="Name Font",
+            description="Which font to use for names",
+            section=secNameFont
+    )
+    default NameFont nameFont() {return NameFont.ARIAL;}
+
+    @ConfigItem(
+            keyName="nameBold",
+            name="Name Bold",
+            description="Use bold style for names?",
+            section=secNameFont
+    )
+    default boolean nameBold() {return false;}
+
+    @ConfigItem(
+            keyName="nameUnderline",
+            name="Name Underline",
+            description="Underline the names?",
+            section=secNameFont
+    )
+    default boolean nameUnderline() {return false;}
+
+    @ConfigItem(
+            keyName="nameItalic",
+            name="Name Italic",
+            description="Use italic style for names?",
+            section=secNameFont
+    )
+    default boolean nameItalic() {return false;}
+
+    @Range(min=-100, max=100)
+    @ConfigItem(
+            keyName="nameOffsetX",
+            name="Name Offset X",
+            description="Horizontal offset for all player names (-100..100)",
+            section=secNameFont
+    )
+    default int nameOffsetX() {return 0;}
+
+    @Range(min=-100, max=100)
+    @ConfigItem(
+            keyName="nameOffsetY",
+            name="Name Offset Y",
+            description="Vertical offset for player names",
+            section=secNameFont
+    )
+    default int nameOffsetY() {return 0;}
+
+    // ----------------------------------------------------
+    // 3) Label Font & Style + Label Offset
+    // ----------------------------------------------------
+    @ConfigSection(
+            name="Label Font & Style",
+            description="Global label font, style, offset",
+            position=2,
+            closedByDefault=true
+    )
+    String secLabelFont = "secLabelFont";
+
+    @ConfigItem(
+            keyName="labelFont",
+            name="Label Font",
+            description="Which font to use for category labels",
+            section=secLabelFont
+    )
+    default NameFont labelFont() {return NameFont.ARIAL;}
+
+    @ConfigItem(
+            keyName="labelBold",
+            name="Label Bold",
+            description="Use bold style for labels?",
+            section=secLabelFont
+    )
+    default boolean labelBold() {return false;}
+
+    @ConfigItem(
+            keyName="labelUnderline",
+            name="Label Underline",
+            description="Underline category labels?",
+            section=secLabelFont
+    )
+    default boolean labelUnderline() {return false;}
+
+    @ConfigItem(
+            keyName="labelItalic",
+            name="Label Italic",
+            description="Use italic style for labels?",
+            section=secLabelFont
+    )
+    default boolean labelItalic() {return false;}
+
+    @Range(min=-100, max=100)
+    @ConfigItem(
+            keyName="labelOffsetX",
+            name="Label Offset X",
+            description="Horizontal offset for all category labels",
+            section=secLabelFont
+    )
+    default int labelOffsetX() {return 0;}
+
+    @Range(min=-100, max=100)
+    @ConfigItem(
+            keyName="labelOffsetY",
+            name="Label Offset Y",
+            description="Vertical offset for category labels",
+            section=secLabelFont
+    )
+    default int labelOffsetY() {return 0;}
+
+    // ----------------------------------------------------
+    // KATEGORIER
+    // ----------------------------------------------------
+    // 1) Enable
+    // 2) Color
+    // 3) Outline
+    // 4) Hull
+    // 5) Tile
+    // 6) Minimap
+    // 7) Name
+    // 8) Label
+
+    // 4) Tag har i tillegg (9) TagMenuOption, (10) Hotkey, (11) TaggedPlayersList
+
+    // ---------- Local
+    @ConfigSection(
+            name="Local Player Highlight",
+            description="Local player settings",
+            position=10,
+            closedByDefault=true
+    )
+    String secLocal = "secLocal";
+
+    @ConfigItem(
+            keyName="enableLocalPlayerHighlight",
+            name="Enable Local",
+            description="Highlight the local player?",
+            section=secLocal
+    )
+    default boolean enableLocalPlayerHighlight() {return false;}
+
+    @ConfigItem(
+            keyName="localPlayerColor",
+            name="Color",
+            description="Color for local player highlight",
+            section=secLocal
+    )
+    default Color localPlayerColor() {return Color.CYAN;}
+
+    @ConfigItem(
+            keyName="localPlayerOutline",
+            name="Outline",
+            description="Highlight local player's outline?",
+            section=secLocal
+    )
+    default boolean localPlayerOutline() {return false;}
+
+    @ConfigItem(
+            keyName="localPlayerHull",
+            name="Hull",
+            description="Highlight local player's hull ring?",
+            section=secLocal
+    )
+    default boolean localPlayerHull() {return false;}
+
+    @ConfigItem(
+            keyName="localPlayerTile",
+            name="Tile",
+            description="Highlight local player's tile?",
+            section=secLocal
+    )
+    default boolean localPlayerTile() {return false;}
+
+    @ConfigItem(
+            keyName="localPlayerMinimapAnimation",
+            name="Minimap",
+            description="Minimap highlight (None=off)",
+            section=secLocal
+    )
+    default MinimapAnimation localPlayerMinimapAnimation() {return MinimapAnimation.NONE;}
+
+    @ConfigItem(
+            keyName="localPlayerNameLocation",
+            name="Name Location",
+            description="Where to display local player's name?",
+            section=secLocal
+    )
+    default PlayerNameLocation localPlayerNameLocation() {return PlayerNameLocation.DISABLED;}
+
+    @ConfigItem(
+            keyName="localPlayerLabelLocation",
+            name="Label Location",
+            description="Where to display 'Local Player' label?",
+            section=secLocal
+    )
+    default PlayerNameLocation localPlayerLabelLocation() {return PlayerNameLocation.DISABLED;}
+
+    @ConfigItem(
+            keyName="localLabelColorMode",
+            name="Label Color Mode",
+            description="White or highlight color?",
+            section=secLocal
+    )
+    default LabelColorMode localLabelColorMode() {return LabelColorMode.CATEGORY_COLOR;}
+
+    // ---------- Attackable
+    @ConfigSection(
+            name="Attackable Highlight",
+            description="Players you can attack",
+            position=11,
+            closedByDefault=true
+    )
+    String secAttackable = "secAttackable";
+
+    @ConfigItem(
+            keyName="enableAttackablePlayersHighlight",
+            name="Enable Attackable",
+            description="Highlight players you can attack?",
+            section=secAttackable
+    )
+    default boolean enableAttackablePlayersHighlight() {return false;}
+
+    @ConfigItem(
+            keyName="attackableColor",
+            name="Color",
+            description="Color for attackable highlight",
+            section=secAttackable
+    )
+    default Color attackableColor() {return Color.BLUE;}
+
+    @ConfigItem(
+            keyName="attackableOutline",
+            name="Outline",
+            description="Outline highlight for attackable?",
+            section=secAttackable
+    )
+    default boolean attackableOutline() {return false;}
+
+    @ConfigItem(
+            keyName="attackableHull",
+            name="Hull",
+            description="Highlight hull ring for attackable?",
+            section=secAttackable
+    )
+    default boolean attackableHull() {return false;}
+
+    @ConfigItem(
+            keyName="attackableTile",
+            name="Tile",
+            description="Highlight tile for attackable?",
+            section=secAttackable
+    )
+    default boolean attackableTile() {return false;}
+
+    @ConfigItem(
+            keyName="attackableMinimapAnimation",
+            name="Minimap",
+            description="Minimap highlight for attackable",
+            section=secAttackable
+    )
+    default MinimapAnimation attackableMinimapAnimation() {return MinimapAnimation.NONE;}
+
+    @ConfigItem(
+            keyName="attackableNameLocation",
+            name="Name Location",
+            description="Where to display attackable player's name?",
+            section=secAttackable
+    )
+    default PlayerNameLocation attackableNameLocation() {return PlayerNameLocation.DISABLED;}
+
+    @ConfigItem(
+            keyName="attackableLabelLocation",
+            name="Label Location",
+            description="Where to display 'Attackable' label?",
+            section=secAttackable
+    )
+    default PlayerNameLocation attackableLabelLocation() {return PlayerNameLocation.DISABLED;}
+
+    @ConfigItem(
+            keyName="attackableLabelColorMode",
+            name="Label Color Mode",
+            description="White or highlight color for 'Attackable' label?",
+            section=secAttackable
+    )
+    default LabelColorMode attackableLabelColorMode() {return LabelColorMode.CATEGORY_COLOR;}
+
+    // ---------- Friends
+    @ConfigSection(
+            name="Friends Highlight",
+            description="Highlight your friends",
+            position=12,
+            closedByDefault=true
+    )
+    String secFriends = "secFriends";
+
+    @ConfigItem(
+            keyName="enableFriendsHighlight",
+            name="Enable Friends",
+            description="Highlight your friends?",
+            section=secFriends
+    )
+    default boolean enableFriendsHighlight() {return false;}
+
+    @ConfigItem(
+            keyName="friendsHighlightColor",
+            name="Color",
+            description="Friends highlight color",
+            section=secFriends
+    )
+    default Color friendsHighlightColor() {return Color.GREEN;}
+
+    @ConfigItem(
+            keyName="friendsOutline",
+            name="Outline",
+            description="Highlight outline for friends?",
+            section=secFriends
+    )
+    default boolean friendsOutline() {return false;}
+
+    @ConfigItem(
+            keyName="friendsHull",
+            name="Hull",
+            description="Highlight hull ring for friends?",
+            section=secFriends
+    )
+    default boolean friendsHull() {return false;}
+
+    @ConfigItem(
+            keyName="friendsTile",
+            name="Tile",
+            description="Highlight tile for friends?",
+            section=secFriends
+    )
+    default boolean friendsTile() {return false;}
+
+    @ConfigItem(
+            keyName="friendsMinimapAnimation",
+            name="Minimap",
+            description="Minimap highlight for friends",
+            section=secFriends
+    )
+    default MinimapAnimation friendsMinimapAnimation() {return MinimapAnimation.NONE;}
+
+    @ConfigItem(
+            keyName="friendsNameLocation",
+            name="Name Location",
+            description="Where to display friend name?",
+            section=secFriends
+    )
+    default PlayerNameLocation friendsNameLocation() {return PlayerNameLocation.DISABLED;}
+
+    @ConfigItem(
+            keyName="friendsLabelLocation",
+            name="Label Location",
+            description="Where to display 'Friend' label?",
+            section=secFriends
+    )
+    default PlayerNameLocation friendsLabelLocation() {return PlayerNameLocation.DISABLED;}
+
+    @ConfigItem(
+            keyName="friendsLabelColorMode",
+            name="Label Color Mode",
+            description="White or highlight color for 'Friend' label?",
+            section=secFriends
+    )
+    default LabelColorMode friendsLabelColorMode() {return LabelColorMode.CATEGORY_COLOR;}
+
+    // ---------- Ignore
+    @ConfigSection(
+            name="Ignore Highlight",
+            description="Highlight players on your ignore list",
+            position=13,
+            closedByDefault=true
+    )
+    String secIgnore = "secIgnore";
+
+    @ConfigItem(
+            keyName="enableIgnoreHighlight",
+            name="Enable Ignore",
+            description="Highlight players on ignore list?",
+            section=secIgnore
+    )
+    default boolean enableIgnoreHighlight() {return false;}
+
+    @ConfigItem(
+            keyName="ignoreHighlightColor",
+            name="Color",
+            description="Ignore highlight color",
+            section=secIgnore
+    )
+    default Color ignoreHighlightColor() {return Color.RED;}
+
+    @ConfigItem(
+            keyName="ignoreOutline",
+            name="Outline",
+            description="Highlight outline for ignored players?",
+            section=secIgnore
+    )
+    default boolean ignoreOutline() {return false;}
+
+    @ConfigItem(
+            keyName="ignoreHull",
+            name="Hull",
+            description="Highlight hull ring for ignored players?",
+            section=secIgnore
+    )
+    default boolean ignoreHull() {return false;}
+
+    @ConfigItem(
+            keyName="ignoreTile",
+            name="Tile",
+            description="Highlight tile for ignored players?",
+            section=secIgnore
+    )
+    default boolean ignoreTile() {return false;}
+
+    @ConfigItem(
+            keyName="ignoreMinimapAnimation",
+            name="Minimap",
+            description="Minimap highlight for ignored players",
+            section=secIgnore
+    )
+    default MinimapAnimation ignoreMinimapAnimation() {return MinimapAnimation.NONE;}
+
+    @ConfigItem(
+            keyName="ignoreNameLocation",
+            name="Name Location",
+            description="Where to display ignored player's name?",
+            section=secIgnore
+    )
+    default PlayerNameLocation ignoreNameLocation() {return PlayerNameLocation.DISABLED;}
+
+    @ConfigItem(
+            keyName="ignoreLabelLocation",
+            name="Label Location",
+            description="Where to display 'Ignored' label?",
+            section=secIgnore
+    )
+    default PlayerNameLocation ignoreLabelLocation() {return PlayerNameLocation.DISABLED;}
+
+    @ConfigItem(
+            keyName="ignoreLabelColorMode",
+            name="Label Color Mode",
+            description="White or highlight color for 'Ignored' label?",
+            section=secIgnore
+    )
+    default LabelColorMode ignoreLabelColorMode() {return LabelColorMode.CATEGORY_COLOR;}
+
+    // ---------- Chat Channel
+    @ConfigSection(
+            name="Chat Channel Highlight",
+            description="Highlight players in your clan/friends chat channel",
+            position=14,
+            closedByDefault=true
+    )
+    String secChat = "secChat";
+
+    @ConfigItem(
+            keyName="enableChatChannelHighlight",
+            name="Enable ChatChannel",
+            description="Highlight players in your chat channel?",
+            section=secChat
+    )
+    default boolean enableChatChannelHighlight() {return false;}
+
+    @ConfigItem(
+            keyName="chatChannelColor",
+            name="Color",
+            description="Chat channel highlight color",
+            section=secChat
+    )
+    default Color chatChannelColor() {return Color.YELLOW;}
+
+    @ConfigItem(
+            keyName="chatChannelOutline",
+            name="Outline",
+            description="Outline highlight for chat channel players?",
+            section=secChat
+    )
+    default boolean chatChannelOutline() {return false;}
+
+    @ConfigItem(
+            keyName="chatChannelHull",
+            name="Hull",
+            description="Hull ring for chat channel players?",
+            section=secChat
+    )
+    default boolean chatChannelHull() {return false;}
+
+    @ConfigItem(
+            keyName="chatChannelTile",
+            name="Tile",
+            description="Tile highlight for chat channel players?",
+            section=secChat
+    )
+    default boolean chatChannelTile() {return false;}
+
+    @ConfigItem(
+            keyName="chatChannelMinimapAnimation",
+            name="Minimap",
+            description="Minimap highlight for chat channel players?",
+            section=secChat
+    )
+    default MinimapAnimation chatChannelMinimapAnimation() {return MinimapAnimation.NONE;}
+
+    @ConfigItem(
+            keyName="chatChannelNameLocation",
+            name="Name Location",
+            description="Where to display name for chat channel players?",
+            section=secChat
+    )
+    default PlayerNameLocation chatChannelNameLocation() {return PlayerNameLocation.DISABLED;}
+
+    @ConfigItem(
+            keyName="chatChannelLabelLocation",
+            name="Label Location",
+            description="Where to display 'Chat Channel' label?",
+            section=secChat
+    )
+    default PlayerNameLocation chatChannelLabelLocation() {return PlayerNameLocation.DISABLED;}
+
+    @ConfigItem(
+            keyName="chatChannelLabelColorMode",
+            name="Label Color Mode",
+            description="White or highlight color for label?",
+            section=secChat
+    )
+    default LabelColorMode chatChannelLabelColorMode() {return LabelColorMode.CATEGORY_COLOR;}
+
+    // ----------------------------------------------------
+    // 6) Tag
+    // ----------------------------------------------------
+    @ConfigSection(
+            name="Tag Players Highlight",
+            description="Highlight players by name",
+            position=15,
+            closedByDefault=true
+    )
+    String secTag = "secTag";
+
+    @ConfigItem(
+            keyName="enableTagPlayerHighlight",
+            name="Enable Tag",
+            description="Enable highlight for tagged players?",
+            section=secTag
+    )
+    default boolean enableTagPlayerHighlight() {return false;}
+
+    @ConfigItem(
+            keyName="tagHighlightColor",
+            name="Color",
+            description="Color for tagged players highlight",
+            section=secTag
+    )
+    default Color tagHighlightColor() {return Color.ORANGE;}
+
+    @ConfigItem(
+            keyName="tagOutline",
+            name="Outline",
+            description="Highlight outline for tagged players?",
+            section=secTag
+    )
+    default boolean tagOutline() {return false;}
+
+    @ConfigItem(
+            keyName="tagHull",
+            name="Hull",
+            description="Highlight hull ring for tagged players?",
+            section=secTag
+    )
+    default boolean tagHull() {return false;}
+
+    @ConfigItem(
+            keyName="tagTile",
+            name="Tile",
+            description="Highlight tile for tagged players?",
+            section=secTag
+    )
+    default boolean tagTile() {return false;}
+
+    @ConfigItem(
+            keyName="tagMinimapAnimation",
+            name="Minimap",
+            description="Minimap highlight for tagged players? (None=off)",
+            section=secTag
+    )
+    default MinimapAnimation tagMinimapAnimation() {return MinimapAnimation.NONE;}
+
+    @ConfigItem(
+            keyName="tagNameLocation",
+            name="Name Location",
+            description="Where to display name for tagged players?",
+            section=secTag
+    )
+    default PlayerNameLocation tagNameLocation() {return PlayerNameLocation.DISABLED;}
+
+    @ConfigItem(
+            keyName="tagLabelLocation",
+            name="Label Location",
+            description="Where to display 'Tagged' label?",
+            section=secTag
+    )
+    default PlayerNameLocation tagLabelLocation() {return PlayerNameLocation.DISABLED;}
+
+    @ConfigItem(
+            keyName="tagLabelColorMode",
+            name="Label Color Mode",
+            description="White or highlight color for 'Tagged' label?",
+            section=secTag
+    )
+    default LabelColorMode tagLabelColorMode() {return LabelColorMode.CATEGORY_COLOR;}
+
+    // 9) Tag Menu Option
+    @ConfigItem(
+            keyName="tagMenuOption",
+            name="Tag Menu Option",
+            description="Off or RightClick. (Custom does nothing).",
+            section=secTag
+    )
+    default TagMenuOption tagMenuOption() {return TagMenuOption.OFF;}
+
+    // 10) Set Hotkey (ikke brukt i koden)
+    @ConfigItem(
+            keyName="tagHotkey",
+            name="Set Hotkey",
+            description="(unused) For possible future SHIFT logic",
+            section=secTag
+    )
+    default Keybind tagHotkey()
+    {
+        // Som standard SHIFT (ikke brukt)
+        return new Keybind(java.awt.event.KeyEvent.VK_SHIFT, 0);
+    }
+
+    // 11) Tagged Player List
+    @ConfigItem(
+            keyName="taggedPlayersList",
+            name="Tagged Player List",
+            description="Multi-line list of players (one per line).",
+            section=secTag
+    )
+    default String taggedPlayersList() {return "";}
 }

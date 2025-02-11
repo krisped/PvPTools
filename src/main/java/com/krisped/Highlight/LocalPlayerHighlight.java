@@ -1,6 +1,7 @@
 package com.krisped.Highlight;
 
 import com.krisped.PvPToolsConfig;
+import com.krisped.PvPToolsConfig.LabelColorMode;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
@@ -14,66 +15,55 @@ public class LocalPlayerHighlight extends BaseHighlight
                                 ModelOutlineRenderer modelOutlineRenderer,
                                 SettingsHighlight settingsHighlight)
     {
-        super(client, config, modelOutlineRenderer, settingsHighlight);
+        super(client,config,modelOutlineRenderer,settingsHighlight);
     }
 
     @Override
     public void renderNormal(Graphics2D g)
     {
-        if (!config.enableLocalPlayerHighlight())
-        {
-            return;
-        }
+        if(!config.enableLocalPlayerHighlight())return;
 
-        Player local = client.getLocalPlayer();
-        if (local == null)
-        {
-            return;
-        }
+        Player local= client.getLocalPlayer();
+        if(local==null)return;
 
-        // For navnet
-        String nameTxt = local.getName() + " (" + local.getCombatLevel() + ")";
-        PvPToolsConfig.PlayerNameLocation nameLoc = config.localPlayerNameLocation();
+        // (2) Color
+        Color c= config.localPlayerColor();
 
-        // For label
-        String labelTxt = "Local Player";
-        PvPToolsConfig.PlayerNameLocation labelLoc = config.localPlayerLabelLocation();
+        // (3) Outline
+        if(config.localPlayerOutline()) drawOutline(local,c);
 
-        // Tegn label + name (uten overlapp)
-        drawNameAndLabel(g, local, nameTxt, nameLoc, config.localPlayerColor(), labelTxt, labelLoc);
+        // (4) Hull
+        if(config.localPlayerHull()) drawHull(g,local,c);
 
-        // Outline
-        if (config.localPlayerOutline())
-        {
-            drawOutline(local, config.localPlayerColor());
-        }
+        // (5) Tile
+        if(config.localPlayerTile()) drawTile(g,local,c);
 
-        // Hull
-        if (config.localPlayerHull())
-        {
-            drawHull(g, local, config.localPlayerColor());
-        }
+        // (7) Name
+        String nameTxt= local.getName()+" ("+local.getCombatLevel()+")";
+        PvPToolsConfig.PlayerNameLocation nameLoc= config.localPlayerNameLocation();
 
-        // Tile
-        if (config.localPlayerTile())
-        {
-            drawTile(g, local, config.localPlayerColor());
-        }
+        // (8) Label
+        String labelTxt= "Local Player";
+        PvPToolsConfig.PlayerNameLocation labelLoc= config.localPlayerLabelLocation();
+
+        // label color mode
+        LabelColorMode mode= config.localLabelColorMode();
+        Color lblColor= (mode==LabelColorMode.WHITE)? Color.WHITE: c;
+
+        drawNameAndLabel(g,
+                local,
+                nameTxt, nameLoc, c,
+                labelTxt, labelLoc, lblColor
+        );
     }
 
     @Override
     public void renderMinimap(Graphics2D g)
     {
-        if (!config.enableLocalPlayerHighlight())
-        {
-            return;
-        }
-
-        Player local = client.getLocalPlayer();
-        if (local == null)
-        {
-            return;
-        }
+        if(!config.enableLocalPlayerHighlight())return;
+        // (6) Minimap
+        Player local= client.getLocalPlayer();
+        if(local==null)return;
 
         drawMinimapDot(g, local, config.localPlayerColor(), config.localPlayerMinimapAnimation());
     }

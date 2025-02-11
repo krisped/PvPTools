@@ -1,6 +1,7 @@
 package com.krisped.Highlight;
 
 import com.krisped.PvPToolsConfig;
+import com.krisped.PvPToolsConfig.LabelColorMode;
 import net.runelite.api.*;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
 
@@ -15,54 +16,41 @@ public class ChatChannelHighlight extends BaseHighlight
                                 ModelOutlineRenderer modelOutlineRenderer,
                                 SettingsHighlight settingsHighlight)
     {
-        super(client, config, modelOutlineRenderer, settingsHighlight);
+        super(client,config,modelOutlineRenderer,settingsHighlight);
     }
 
     @Override
     public void renderNormal(Graphics2D g)
     {
-        if (!config.enableChatChannelHighlight()) return;
+        if(!config.enableChatChannelHighlight())return;
 
-        Player local = client.getLocalPlayer();
-        if (local == null) return;
+        Player local= client.getLocalPlayer();
+        if(local==null)return;
 
-        Set<String> fcMembers = getFriendsChatMembers();
-        if (fcMembers.isEmpty()) return;
+        Set<String> fc= getFriendsChatMembers();
+        if(fc.isEmpty())return;
 
-        for (Player p : client.getPlayers())
+        for(Player p: client.getPlayers())
         {
-            if (p == null || p == local) continue;
-
-            String clean = cleanName(p.getName());
-            if (fcMembers.contains(clean))
+            if(p==null||p==local)continue;
+            String cName= cleanName(p.getName());
+            if(fc.contains(cName))
             {
-                // Name
-                String nameTxt = p.getName() + " (" + p.getCombatLevel() + ")";
-                PvPToolsConfig.PlayerNameLocation nameLoc = config.chatChannelNameLocation();
+                Color c= config.chatChannelColor();
+                if(config.chatChannelOutline()) drawOutline(p,c);
+                if(config.chatChannelHull())    drawHull(g,p,c);
+                if(config.chatChannelTile())    drawTile(g,p,c);
 
-                // Label
-                String labelTxt = "Chat Channel";
-                PvPToolsConfig.PlayerNameLocation labelLoc = config.chatChannelLabelLocation();
+                String nameTxt= p.getName()+" ("+p.getCombatLevel()+")";
+                PvPToolsConfig.PlayerNameLocation nLoc= config.chatChannelNameLocation();
 
-                drawNameAndLabel(g, p, nameTxt, nameLoc, config.chatChannelColor(), labelTxt, labelLoc);
+                String lbTxt= "Chat Channel";
+                PvPToolsConfig.PlayerNameLocation lbLoc= config.chatChannelLabelLocation();
 
-                // Outline
-                if (config.chatChannelOutline())
-                {
-                    drawOutline(p, config.chatChannelColor());
-                }
+                LabelColorMode mode= config.chatChannelLabelColorMode();
+                Color lbColor= (mode== LabelColorMode.WHITE)?Color.WHITE:c;
 
-                // Hull
-                if (config.chatChannelHull())
-                {
-                    drawHull(g, p, config.chatChannelColor());
-                }
-
-                // Tile
-                if (config.chatChannelTile())
-                {
-                    drawTile(g, p, config.chatChannelColor());
-                }
+                drawNameAndLabel(g,p,nameTxt,nLoc,c,lbTxt,lbLoc,lbColor);
             }
         }
     }
@@ -70,50 +58,45 @@ public class ChatChannelHighlight extends BaseHighlight
     @Override
     public void renderMinimap(Graphics2D g)
     {
-        if (!config.enableChatChannelHighlight()) return;
+        if(!config.enableChatChannelHighlight())return;
 
-        Player local = client.getLocalPlayer();
-        if (local == null) return;
+        Player local=client.getLocalPlayer();
+        if(local==null)return;
 
-        Set<String> fcMembers = getFriendsChatMembers();
-        if (fcMembers.isEmpty()) return;
+        Set<String> fc= getFriendsChatMembers();
+        if(fc.isEmpty())return;
 
-        for (Player p : client.getPlayers())
+        for(Player p: client.getPlayers())
         {
-            if (p == null || p == local) continue;
-
-            String clean = cleanName(p.getName());
-            if (fcMembers.contains(clean))
+            if(p==null||p==local)continue;
+            String cName= cleanName(p.getName());
+            if(fc.contains(cName))
             {
-                drawMinimapDot(g, p, config.chatChannelColor(), config.chatChannelMinimapAnimation());
+                drawMinimapDot(g,p, config.chatChannelColor(), config.chatChannelMinimapAnimation());
             }
         }
     }
 
     private Set<String> getFriendsChatMembers()
     {
-        Set<String> names = new HashSet<>();
-        FriendsChatManager mgr = client.getFriendsChatManager();
-        if (mgr == null) return names;
+        Set<String> set= new HashSet<>();
+        FriendsChatManager mgr= client.getFriendsChatManager();
+        if(mgr==null)return set;
 
-        for (FriendsChatMember mem : mgr.getMembers())
+        for(FriendsChatMember mem: mgr.getMembers())
         {
-            if (mem == null) continue;
-            String c = cleanName(mem.getName());
-            if (!c.isEmpty())
-            {
-                names.add(c);
-            }
+            if(mem==null)continue;
+            String cc= cleanName(mem.getName());
+            if(!cc.isEmpty()) set.add(cc);
         }
-        return names;
+        return set;
     }
 
     private String cleanName(String raw)
     {
-        if (raw == null) return "";
-        return raw.replaceAll("<.*?>", "")
+        if(raw==null)return"";
+        return raw.replaceAll("<.*?>","")
                 .replace('\u00A0',' ')
-                .toLowerCase()
-                .trim();
+                .toLowerCase().trim();
     }
 }

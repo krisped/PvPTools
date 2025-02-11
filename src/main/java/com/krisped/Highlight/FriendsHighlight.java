@@ -1,6 +1,7 @@
 package com.krisped.Highlight;
 
 import com.krisped.PvPToolsConfig;
+import com.krisped.PvPToolsConfig.LabelColorMode;
 import net.runelite.api.Client;
 import net.runelite.api.Player;
 import net.runelite.client.ui.overlay.outline.ModelOutlineRenderer;
@@ -14,49 +15,37 @@ public class FriendsHighlight extends BaseHighlight
                             ModelOutlineRenderer modelOutlineRenderer,
                             SettingsHighlight settingsHighlight)
     {
-        super(client, config, modelOutlineRenderer, settingsHighlight);
+        super(client,config,modelOutlineRenderer,settingsHighlight);
     }
 
     @Override
     public void renderNormal(Graphics2D g)
     {
-        if (!config.enableFriendsHighlight()) return;
+        if(!config.enableFriendsHighlight())return;
 
-        Player local = client.getLocalPlayer();
-        if (local == null) return;
+        Player local= client.getLocalPlayer();
+        if(local==null)return;
 
-        for (Player p : client.getPlayers())
+        for(Player p: client.getPlayers())
         {
-            if (p == null || p == local) continue;
-            if (client.isFriended(p.getName(), false))
+            if(p==null||p==local)continue;
+            if(client.isFriended(p.getName(), false))
             {
-                // Name
-                String nameTxt = p.getName() + " (" + p.getCombatLevel() + ")";
-                PvPToolsConfig.PlayerNameLocation nameLoc = config.friendsNameLocation();
+                Color c= config.friendsHighlightColor();
+                if(config.friendsOutline()) drawOutline(p,c);
+                if(config.friendsHull())    drawHull(g,p,c);
+                if(config.friendsTile())    drawTile(g,p,c);
 
-                // Label
-                String labelTxt = "Friend";
-                PvPToolsConfig.PlayerNameLocation labelLoc = config.friendsLabelLocation();
+                String nameTxt= p.getName()+" ("+p.getCombatLevel()+")";
+                PvPToolsConfig.PlayerNameLocation nmLoc= config.friendsNameLocation();
 
-                drawNameAndLabel(g, p, nameTxt, nameLoc, config.friendsHighlightColor(), labelTxt, labelLoc);
+                String lbTxt= "Friend";
+                PvPToolsConfig.PlayerNameLocation lbLoc= config.friendsLabelLocation();
 
-                // Outline
-                if (config.friendsOutline())
-                {
-                    drawOutline(p, config.friendsHighlightColor());
-                }
+                LabelColorMode mode= config.friendsLabelColorMode();
+                Color lbColor= (mode==LabelColorMode.WHITE)?Color.WHITE:c;
 
-                // Hull
-                if (config.friendsHull())
-                {
-                    drawHull(g, p, config.friendsHighlightColor());
-                }
-
-                // Tile
-                if (config.friendsTile())
-                {
-                    drawTile(g, p, config.friendsHighlightColor());
-                }
+                drawNameAndLabel(g,p,nameTxt,nmLoc,c,lbTxt,lbLoc,lbColor);
             }
         }
     }
@@ -64,17 +53,16 @@ public class FriendsHighlight extends BaseHighlight
     @Override
     public void renderMinimap(Graphics2D g)
     {
-        if (!config.enableFriendsHighlight()) return;
+        if(!config.enableFriendsHighlight())return;
+        Player local= client.getLocalPlayer();
+        if(local==null)return;
 
-        Player local = client.getLocalPlayer();
-        if (local == null) return;
-
-        for (Player p : client.getPlayers())
+        for(Player p: client.getPlayers())
         {
-            if (p == null || p == local) continue;
-            if (client.isFriended(p.getName(), false))
+            if(p==null||p==local)continue;
+            if(client.isFriended(p.getName(), false))
             {
-                drawMinimapDot(g, p, config.friendsHighlightColor(), config.friendsMinimapAnimation());
+                drawMinimapDot(g,p, config.friendsHighlightColor(), config.friendsMinimapAnimation());
             }
         }
     }

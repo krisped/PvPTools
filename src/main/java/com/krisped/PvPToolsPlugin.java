@@ -5,10 +5,9 @@ import com.krisped.Highlight.*;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.EventBus;
-import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.overlay.*;
@@ -44,10 +43,10 @@ public class PvPToolsPlugin extends Plugin
 
     private Overlay highlightOverlayUnder;
     private Overlay highlightOverlayAbove;
-    private boolean overlaysAdded = false;
+    private boolean overlaysAdded=false;
 
-    // Alle highlight-objekter
-    private final List<BaseHighlight> highlightList = new ArrayList<>();
+    private SettingsHighlight settings;
+    private final List<BaseHighlight> highlightList= new ArrayList<>();
 
     private LocalPlayerHighlight localHighlight;
     private AttackablePlayerHighlight attackableHighlight;
@@ -55,9 +54,6 @@ public class PvPToolsPlugin extends Plugin
     private IgnoreHighlight ignoreHighlight;
     private ChatChannelHighlight chatHighlight;
     private TagPlayerHighlight tagHighlight;
-
-    // Settings
-    private SettingsHighlight settings;
 
     @Provides
     PvPToolsConfig provideConfig(ConfigManager configManager)
@@ -69,16 +65,21 @@ public class PvPToolsPlugin extends Plugin
     protected void startUp()
     {
         log.info("[KP] PvP Tools started!");
-        settings = new SettingsHighlight(config);
+        settings= new SettingsHighlight(config);
 
-        // Opprett highlight-objekter
         localHighlight      = new LocalPlayerHighlight(client, config, modelOutlineRenderer, settings);
         attackableHighlight = new AttackablePlayerHighlight(client, config, modelOutlineRenderer, settings);
         friendsHighlight    = new FriendsHighlight(client, config, modelOutlineRenderer, settings);
         ignoreHighlight     = new IgnoreHighlight(client, config, modelOutlineRenderer, settings);
         chatHighlight       = new ChatChannelHighlight(client, config, modelOutlineRenderer, settings);
 
-        tagHighlight = new TagPlayerHighlight(client, config, modelOutlineRenderer, settings, configManager);
+        tagHighlight= new TagPlayerHighlight(
+                client,
+                config,
+                modelOutlineRenderer,
+                settings,
+                configManager
+        );
         tagHighlight.registerEvents(eventBus);
 
         highlightList.add(localHighlight);
@@ -88,14 +89,13 @@ public class PvPToolsPlugin extends Plugin
         highlightList.add(chatHighlight);
         highlightList.add(tagHighlight);
 
-        // Overlay for "normal" highlights (UNDER widgets)
-        highlightOverlayUnder = new Overlay()
+        highlightOverlayUnder= new Overlay()
         {
             @Override
             public java.awt.Dimension render(java.awt.Graphics2D graphics)
             {
-                if (!isAnyHighlightEnabled()) return null;
-                for (BaseHighlight h : highlightList)
+                if(!isAnyHighlightEnabled()) return null;
+                for(BaseHighlight h: highlightList)
                 {
                     h.renderNormal(graphics);
                 }
@@ -106,14 +106,13 @@ public class PvPToolsPlugin extends Plugin
         highlightOverlayUnder.setLayer(OverlayLayer.UNDER_WIDGETS);
         highlightOverlayUnder.setPriority(OverlayPriority.LOW);
 
-        // Overlay for minimap highlights (ABOVE widgets)
-        highlightOverlayAbove = new Overlay()
+        highlightOverlayAbove= new Overlay()
         {
             @Override
             public java.awt.Dimension render(java.awt.Graphics2D graphics)
             {
-                if (!isAnyHighlightEnabled()) return null;
-                for (BaseHighlight h : highlightList)
+                if(!isAnyHighlightEnabled()) return null;
+                for(BaseHighlight h: highlightList)
                 {
                     h.renderMinimap(graphics);
                 }
@@ -132,28 +131,25 @@ public class PvPToolsPlugin extends Plugin
     {
         log.info("[KP] PvP Tools stopped!");
 
-        if (tagHighlight != null)
+        if(tagHighlight!=null)
         {
             tagHighlight.unregisterEvents();
         }
-
-        if (overlaysAdded)
+        if(overlaysAdded)
         {
             overlayManager.remove(highlightOverlayUnder);
             overlayManager.remove(highlightOverlayAbove);
-            overlaysAdded = false;
+            overlaysAdded=false;
         }
         highlightList.clear();
     }
 
-    @Subscribe
-    public void onConfigChanged(ConfigChanged event)
+    @net.runelite.client.eventbus.Subscribe
+    public void onConfigChanged(ConfigChanged e)
     {
-        if (!"pvptools".equals(event.getGroup()))
-        {
-            return;
-        }
-        // Nullstill font cache hvis man bytter font/style
+        if(!"pvptools".equals(e.getGroup()))return;
+
+        // nullstill fontcache
         settings.resetFontCache();
 
         clientThread.invokeLater(this::updateOverlayState);
@@ -161,18 +157,18 @@ public class PvPToolsPlugin extends Plugin
 
     private void updateOverlayState()
     {
-        boolean any = isAnyHighlightEnabled();
-        if (any && !overlaysAdded)
+        boolean any= isAnyHighlightEnabled();
+        if(any && !overlaysAdded)
         {
             overlayManager.add(highlightOverlayUnder);
             overlayManager.add(highlightOverlayAbove);
-            overlaysAdded = true;
+            overlaysAdded=true;
         }
-        else if (!any && overlaysAdded)
+        else if(!any && overlaysAdded)
         {
             overlayManager.remove(highlightOverlayUnder);
             overlayManager.remove(highlightOverlayAbove);
-            overlaysAdded = false;
+            overlaysAdded=false;
         }
     }
 
